@@ -6,16 +6,17 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.IDConstants;
+import frc.robot.util.SD;
 
 public class AlgaeRoller extends SubsystemBase
 {
   private TalonFX m_Algae;
-  private DigitalInput io_AlgaeSensor;
+  private DigitalInput io_Sensor;
 
   public AlgaeRoller()
   {
     m_Algae = new TalonFX(IDConstants.AlgaeRollerID);
-    io_AlgaeSensor = new DigitalInput(IDConstants.AlgaeSensorDIO);
+    io_Sensor = new DigitalInput(IDConstants.AlgaeSensorDIO);
   }
 
   public void setSpeed(double speed)
@@ -25,7 +26,7 @@ public class AlgaeRoller extends SubsystemBase
 
   public boolean getSensor()
   {
-    return io_AlgaeSensor.get();
+    return io_Sensor.get();
   }
    
   public Command runCommand(double speed)
@@ -36,5 +37,11 @@ public class AlgaeRoller extends SubsystemBase
   public Command smartRunCommand(double speed)
   {
     return runCommand(speed).until(this::getSensor);
+  }
+
+  @Override
+  public void periodic() 
+  {
+    SD.ALGAE_ROLLER.put(m_Algae.get());
   }
 }

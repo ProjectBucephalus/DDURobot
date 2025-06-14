@@ -18,6 +18,7 @@ import frc.robot.subsystems.RumbleRequester;
 import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;
+import frc.robot.util.Telemetry;
 
 public class Superstructure 
 {
@@ -26,6 +27,8 @@ public class Superstructure
   public static final int strafeAxis      = Axis.kLeftX.value;
   public static final int rotationAxis    = Axis.kRightX.value;
   public static final int brakeAxis       = Axis.kRightTrigger.value;
+
+  private final Telemetry logger;
 
   private SwerveDriveState swerveState;
   private Field2d field;
@@ -44,9 +47,13 @@ public class Superstructure
     s_Swerve = TunerConstants.createDrivetrain();
     s_Coral = new CoralRoller();
 
+    logger = new Telemetry(Constants.Swerve.maxSpeed);
+
     updateSwerveState();
 
     SmartDashboard.putData("Field", field);
+
+    s_Swerve.registerTelemetry(logger::telemeterize);
 
     bindControls();
     bindRumbles();
@@ -78,8 +85,8 @@ public class Superstructure
 
     copilot.leftTrigger().whileTrue(s_Coral.smartRunCommand(SD.IO_CORALSPEED_F.get()));
     copilot.rightTrigger().whileTrue(s_Coral.smartRunCommand(SD.IO_CORALSPEED_R.get()));
-    copilot.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_ALGAESPEED_F.get()));
-    copilot.rightBumper().whileTrue(s_Coral.runCommand(SD.IO_ALGAESPEED_R.get()));
+    copilot.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_F.get()));
+    copilot.rightBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
     new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
   }
 

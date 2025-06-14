@@ -47,6 +47,9 @@ public class SD
   public static final DoubleKey IO_ALGAESPEED_F = new DoubleKey("Algae Roller Forward Speed", Constants.Algae.forwardSpeed);
   public static final DoubleKey IO_ALGAESPEED_R = new DoubleKey("Algae Roller Reverse Speed", Constants.Algae.reverseSpeed);
 
+  public static final DoubleKey CORAL_ROLLER = new DoubleKey("Current Coral Roller Speed", 0);
+  public static final DoubleKey ALGAE_ROLLER = new DoubleKey("Current Algae Roller Speed", 0);
+
   static
   {
     for 
@@ -58,7 +61,9 @@ public class SD
         IO_POSE_Y,
         IO_POSE_R,
         IO_GEOFENCE,
-        IO_AUTO
+        IO_AUTO,
+        IO_CORALSPEED_F,
+        IO_CORALSPEED_R
       )
     )
     {
