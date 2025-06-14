@@ -68,8 +68,13 @@ public final class Constants
 
   public static final class Coral
   {
-    
     public static final double forwardSpeed = 0.5;
+    public static final double reverseSpeed = -0.5;
+  }
+
+  public static final class Algae
+  {
+    public static final double forwardspeed = 0.5;
     public static final double reverseSpeed = -0.5;
   }
 }
