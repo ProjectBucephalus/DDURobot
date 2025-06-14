@@ -23,7 +23,7 @@ public abstract class SwerveCommandBase extends Command
 
   protected DoubleSupplier translationSup;
   protected DoubleSupplier strafeSup;
-  protected Supplier<Translation2d> robotXYSup = () -> RobotContainer.swerveState.Pose.getTranslation();
+  protected Supplier<Translation2d> posSup;
   protected DoubleSupplier brakeSup;
   protected BooleanSupplier fencedSup;
   
@@ -39,10 +39,11 @@ public abstract class SwerveCommandBase extends Command
   protected boolean redAlliance;
 
   /** Creates a new SwerveCommandBase. This has no rotation or drive-request methods or objects */
-  public SwerveCommandBase(CommandSwerveDrivetrain s_Swerve, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier brakeSup, BooleanSupplier fencedSup) 
+  public SwerveCommandBase(CommandSwerveDrivetrain s_Swerve, Supplier<Translation2d> posSup, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier brakeSup, BooleanSupplier fencedSup) 
   {
     this.s_Swerve = s_Swerve;
     
+    this.posSup = posSup;
     this.translationSup = translationSup;
     this.strafeSup = strafeSup;    
     this.brakeSup = brakeSup;
@@ -74,7 +75,7 @@ public abstract class SwerveCommandBase extends Command
   protected Translation2d processXY()
   {
     /* Get values */
-    robotXY = robotXYSup.get();
+    robotXY = posSup.get();
     translationVal = translationSup.getAsDouble();
     strafeVal = strafeSup.getAsDouble();
     motionXY = new Translation2d(translationVal, strafeVal);

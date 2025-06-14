@@ -12,13 +12,17 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
+  private final Superstructure superstructure;
 
   public Robot() {
     m_robotContainer = new RobotContainer();
+    superstructure = new Superstructure();
   }
 
   @Override
-  public void robotPeriodic() {
+  public void robotPeriodic() 
+  {
+    superstructure.updateSwerveState();
     CommandScheduler.getInstance().run();
   }
 
