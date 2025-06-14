@@ -42,6 +42,7 @@ public class AutoFactories
       {
         case 'g':
           int seperatorIndex = splitCommand.indexOf(":");
+          
           Translation2d posTarget = 
           new Translation2d
           (
@@ -49,9 +50,12 @@ public class AutoFactories
             MathUtil.clamp(Double.parseDouble(splitCommand.substring(seperatorIndex + 1)), 0.5, FieldUtils.fieldWidth - 0.5)
           );
 
-          Translation2d finalPosTarget = posTarget;
-          Rotation2d rotationTarget = splitCommand.contains(";") ? new Rotation2d(Units.degreesToRadians(Double.parseDouble(splitCommand.substring(splitCommand.indexOf(";"))))) : swerveStateSup.get().Pose.getRotation();
-          commandList.add(s_Swerve.poseLockDriveCommand(new AlliancePose2dSup(finalPosTarget, rotationTarget), swerveStateSup));
+          Rotation2d rotationTarget = 
+          splitCommand.contains(";") ? 
+          new Rotation2d(Units.degreesToRadians(Double.parseDouble(splitCommand.substring(splitCommand.indexOf(";"))))) : 
+          swerveStateSup.get().Pose.getRotation();
+          
+          commandList.add(s_Swerve.poseLockDriveCommand(new AlliancePose2dSup(posTarget, rotationTarget), swerveStateSup));
           break;
 
         case 'w':
