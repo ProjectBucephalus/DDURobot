@@ -40,6 +40,7 @@ public class SD
   public static final DoubleKey IO_POSE_X = new DoubleKey("Pose X", 0.0);
   public static final DoubleKey IO_POSE_Y = new DoubleKey("Pose Y", 0.0);
   public static final DoubleKey IO_POSE_R = new DoubleKey("Pose Rotation", 0.0);
+  public static final StringKey IO_AUTO = new StringKey("Auto String", "");
 
   static
   {

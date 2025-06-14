@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.swerve.ManualDrive;
@@ -14,12 +15,13 @@ import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralRoller;
 import frc.robot.subsystems.RumbleRequester;
+import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;
 
 public class Superstructure 
 {
-  /* Driver Control Axis */
+  /* Driver Control Axes */
   public static final int translationAxis = Axis.kLeftY.value;
   public static final int strafeAxis      = Axis.kLeftX.value;
   public static final int rotationAxis    = Axis.kRightX.value;
@@ -83,5 +85,10 @@ public class Superstructure
   {
     io_copilotLeft.addRumbleTrigger("coral held", new Trigger(s_Coral::getSensor));
     io_copilotRight.addRumbleTrigger("ready to score" , new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())));
+  }
+
+  public Command getAutonomousCommand() 
+  {
+    return AutoFactories.getCommandList(SD.IO_AUTO.get(), s_Coral, s_Swerve, this::getSwerveState);
   }
 }
