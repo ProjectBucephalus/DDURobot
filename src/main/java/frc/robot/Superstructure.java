@@ -19,28 +19,34 @@ import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;
 import frc.robot.util.Telemetry;
+import frc.robot.util.controlTransmutation.InputFunction.JoystickTransmuter;
 
 public class Superstructure 
 {
   /* Driver Control Axes */
-  public static final int translationAxis = Axis.kLeftY.value;
-  public static final int strafeAxis      = Axis.kLeftX.value;
-  public static final int rotationAxis    = Axis.kRightX.value;
-  public static final int brakeAxis       = Axis.kRightTrigger.value;
-
+  private final int translationAxis = Axis.kLeftY.value;
+  private final int strafeAxis      = Axis.kLeftX.value;
+  private final int rotationAxis    = Axis.kRightX.value;
+  private final int brakeAxis       = Axis.kRightTrigger.value;
+  
   private final Telemetry logger;
-
+  
   private SwerveDriveState swerveState;
   private Field2d field;
+
   private final CommandSwerveDrivetrain s_Swerve;
   private final CoralRoller s_Coral;
+
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController copilot = new CommandXboxController(1);
   private final RumbleRequester io_driverRight   = new RumbleRequester(driver, RumbleType.kRightRumble, SD.RUMBLE_D_R::put, SD.IO_RUMBLE_D::get);
   private final RumbleRequester io_driverLeft    = new RumbleRequester(driver, RumbleType.kLeftRumble, SD.RUMBLE_D_L::put, SD.IO_RUMBLE_D::get);
   private final RumbleRequester io_copilotRight  = new RumbleRequester(copilot, RumbleType.kRightRumble, SD.RUMBLE_C_R::put, SD.IO_RUMBLE_C::get);
   private final RumbleRequester io_copilotLeft   = new RumbleRequester(copilot, RumbleType.kLeftRumble, SD.RUMBLE_C_L::put, SD.IO_RUMBLE_C::get);
-
+  
+  
+  public final JoystickTransmuter driverStick = new JoystickTransmuter(() -> -driver.getRawAxis(translationAxis), () -> -driver.getRawAxis(strafeAxis));
+  
   public Superstructure()
   {
     field = new Field2d();
