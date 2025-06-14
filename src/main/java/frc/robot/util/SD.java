@@ -15,17 +15,20 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 /** Simplified interface for most SmartDashboard interactions */
 public class SD 
 {
+  public static final BooleanKey IO_LL = new BooleanKey("Use Limelight", true);
+  public static final DoubleKey  IO_LL_EXPOSURE = new DoubleKey("Exposure Setting", 0);
+  public static final BooleanKey IO_LL_EXPOSURE_UP = new BooleanKey("Increase Exposure", false);
+  public static final BooleanKey IO_LL_EXPOSURE_DOWN = new BooleanKey("Decrease Exposure", false);
 
   public static final StringKey  STATE_HEADING = new StringKey("Heading State", "");
   public static final StringKey  STATE_DRIVE = new StringKey("Drive State", "Disabled");
   public static final BooleanKey STATE_HEADING_SNAP = new BooleanKey("Heading Snap Updating", true);
 
-  // public static final BooleanKey IO_GEOFENCE = new BooleanKey("Use Fence", true);
-  // public static final BooleanKey IO_OUTER_GEOFENCE = new BooleanKey("Wall Fence", true);
-  // public static final DoubleKey  IO_GEOFENCE_IMPACT = new DoubleKey("Fence Impact", 1);
+  public static final BooleanKey IO_GEOFENCE = new BooleanKey("Use Fence", true);
+  public static final BooleanKey IO_OUTER_GEOFENCE = new BooleanKey("Wall Fence", true);
+  public static final DoubleKey  IO_GEOFENCE_IMPACT = new DoubleKey("Fence Impact", 1);
   public static final DoubleKey  IO_RUMBLE_D = new DoubleKey("Driver Rumble", Constants.RumblerConstants.driverDefault);
   public static final DoubleKey  IO_RUMBLE_C = new DoubleKey("Copilot Rumble", Constants.RumblerConstants.copilotDefault);
-  //public static final BooleanKey IO_BARGE_PROTECTION = new BooleanKey("Use Barge Protection", true);
 
   public static final DoubleKey SENSOR_GYRO = new DoubleKey("Gyro yaw", 0);
 

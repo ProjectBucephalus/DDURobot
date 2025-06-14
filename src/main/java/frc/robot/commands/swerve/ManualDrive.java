@@ -4,9 +4,10 @@
 
 package frc.robot.commands.swerve;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveModule.*;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -28,9 +29,9 @@ public class ManualDrive extends SwerveCommandBase
     .withSteerRequestType(SteerRequestType.MotionMagicExpo);
 
   /** Creates a new ManualDrive. */
-  public ManualDrive(CommandSwerveDrivetrain s_Swerve, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier rotationSup, DoubleSupplier brakeSup, BooleanSupplier fencedSup) 
+  public ManualDrive(CommandSwerveDrivetrain s_Swerve, Supplier<SwerveDriveState> swerveStateSup, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier rotationSup, DoubleSupplier brakeSup) 
   {
-    super(s_Swerve, translationSup, strafeSup, brakeSup, fencedSup);
+    super(s_Swerve, swerveStateSup, translationSup, strafeSup, brakeSup);
     this.rotationSup = rotationSup;
   }
 

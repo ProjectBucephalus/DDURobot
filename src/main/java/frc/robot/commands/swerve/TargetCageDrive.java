@@ -1,7 +1,9 @@
 package frc.robot.commands.swerve;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -15,15 +17,15 @@ public class TargetCageDrive extends HeadingLockedDrive
   public TargetCageDrive
   (
     CommandSwerveDrivetrain s_Swerve, 
+    Supplier<SwerveDriveState> swerveStateSup, 
     DoubleSupplier translationSup, 
     DoubleSupplier strafeSup, 
     Rotation2d targetHeading, 
     Rotation2d rotationOffset, 
-    DoubleSupplier brakeSup, 
-    BooleanSupplier fencedSup
+    DoubleSupplier brakeSup
   ) 
   {
-    super(s_Swerve, translationSup, strafeSup, targetHeading, rotationOffset, brakeSup, fencedSup);
+    super(s_Swerve, swerveStateSup, translationSup, strafeSup, targetHeading, rotationOffset, brakeSup);
   }
 
   @Override
@@ -37,15 +39,7 @@ public class TargetCageDrive extends HeadingLockedDrive
 
   @Override
   protected void applyTranslationDeadband() 
-  {
-    if (MathUtil.isNear(robotXY.getX(), (FieldUtils.fieldLength / 2), Constants.Manipulators.algaeRange)) 
-    {
-      double translationOut = Math.abs(translationVal) < Math.abs(strafeVal) ? 0 : translationVal;
-      double strafeOut = Math.abs(strafeVal) < Math.abs(translationVal) ? 0 : strafeVal;
-
-      motionXY = new Translation2d(translationOut, strafeOut);
-    }
-    
+  {    
     if (motionXY.getNorm() <= deadband) {motionXY = Translation2d.kZero;}
   }
 

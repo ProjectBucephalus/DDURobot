@@ -1,7 +1,9 @@
 package frc.robot.commands.swerve;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -13,15 +15,15 @@ public class TargetProcessorDrive extends HeadingLockedDrive
   public TargetProcessorDrive
   (
     CommandSwerveDrivetrain s_Swerve, 
+    Supplier<SwerveDriveState> swerveStateSup, 
     DoubleSupplier translationSup, 
     DoubleSupplier strafeSup, 
     Rotation2d targetHeading, 
     Rotation2d rotationOffset, 
-    DoubleSupplier brakeSup, 
-    BooleanSupplier fencedSup
+    DoubleSupplier brakeSup
   ) 
   {
-    super(s_Swerve, translationSup, strafeSup, targetHeading, rotationOffset, brakeSup, fencedSup);
+    super(s_Swerve, swerveStateSup, translationSup, strafeSup, targetHeading, rotationOffset, brakeSup);
   }
 
   @Override
