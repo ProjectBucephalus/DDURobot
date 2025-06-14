@@ -2,16 +2,19 @@ package frc.robot;
 
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
-import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.commands.swerve.ManualDrive;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.swerve.ManualDrive;
 import frc.robot.constants.Constants;
 import frc.robot.constants.TunerConstants;
-import frc.robot.subsystems.*;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.CoralRoller;
+import frc.robot.subsystems.RumbleRequester;
+import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;
 
 public class Superstructure 
@@ -73,10 +76,12 @@ public class Superstructure
     copilot.rightTrigger().whileTrue(s_Coral.smartRunCommand(Constants.Coral.reverseSpeed));
     copilot.leftBumper().whileTrue(s_Coral.runCommand(Constants.Coral.forwardSpeed));
     copilot.rightBumper().whileTrue(s_Coral.runCommand(Constants.Coral.reverseSpeed));
+    new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
   }
 
   private void bindRumbles()
   {
     io_copilotLeft.addRumbleTrigger("coral held", new Trigger(s_Coral::getSensor));
+    io_copilotRight.addRumbleTrigger("ready to score" , new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())));
   }
 }

@@ -1,5 +1,6 @@
 package frc.robot.util;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -10,6 +11,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.util.GeoFenceObject.ObjectTypes;
 
@@ -97,19 +99,6 @@ public class FieldUtils
     nearestReefFace = (int)Conversions.wrap(nearestReefFace, 1, 6);
     
     return nearestReefFace;
-  }
-
-  public static int getNearestBargePoint(Translation2d robotPos)
-  {
-    int nearestBargePoint;
-    ArrayList<Translation2d> localList =
-    isRedAlliance() ? 
-    FieldConstants.redBargePoints :
-    FieldConstants.blueBargePoints;
-    
-    nearestBargePoint = localList.indexOf(robotPos.nearest(localList)) + 1;
-
-    return nearestBargePoint;
   }
 
   public static GeoFenceObject getNearestCoralStation(Translation2d robotPos)
@@ -239,4 +228,12 @@ public class FieldUtils
     public static final Translation2d driverRed2 = new Translation2d(fieldLength,4.026);
     public static final Translation2d driverRed3 = new Translation2d(fieldLength,5.278);
   }
+
+  public static boolean atReefLineUp(Translation2d robotPos)
+  {
+    return
+    Arrays.stream(FieldConstants.reefLineups)
+      .anyMatch(lineup -> Math.abs(lineup.getTranslation().minus(robotPos).getNorm()) < Constants.Control.lineupTolerance);
+  }
+
 }
