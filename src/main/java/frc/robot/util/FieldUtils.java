@@ -67,6 +67,11 @@ public class FieldUtils
     return pose;
   }
 
+  public static GeoFenceObject[] getAllianceFencing() 
+  {
+    return isRedAlliance() ? GeoFencing.fieldRedGeoFence : GeoFencing.fieldBlueGeoFence;
+  }
+
   public static int getNearestReefFaceAllianceLocked(Translation2d robotPos)
   {
     int nearestReefFace;
