@@ -31,6 +31,7 @@ public class FieldConstants
   public static final Pose2d rjLineup = rbLineup.rotateAround(reefCentre, new Rotation2d(Units.degreesToRadians(120)));
   public static final Pose2d rkLineup = raLineup.rotateAround(reefCentre, new Rotation2d(Units.degreesToRadians(60)));
   public static final Pose2d rlLineup = rbLineup.rotateAround(reefCentre, new Rotation2d(Units.degreesToRadians(60)));
+  public static final Pose2d[] reefLineups = {raLineup, rbLineup, rcLineup, reLineup, rfLineup, rgLineup, rhLineup, riLineup, rjLineup, rkLineup, rlLineup};
 
   public static Pose2d getLineup(String name)
   {
