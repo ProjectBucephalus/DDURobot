@@ -40,5 +40,7 @@ public class Superstructure
   {
     copilot.leftTrigger().whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
     copilot.rightTrigger().whileTrue(s_Coral.smartRunCommand(Constants.Coral.reverseSpeed));
+    copilot.leftBumper().whileTrue(s_Coral.runCommand(Constants.Coral.forwardSpeed));
+    copilot.rightBumper().whileTrue(s_Coral.runCommand(Constants.Coral.reverseSpeed));
   }
 }
