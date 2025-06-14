@@ -1,7 +1,10 @@
 package frc.robot.util;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 
 
 public class Conversions 
@@ -65,4 +68,14 @@ public class Conversions
     {return value.div(value.getNorm());}
     return value;
   }
+
+  /**
+   * Pose2d Constructor Wrapper. Note that this is marginally inefficient for right-angles (0, 90, 180, etc), 
+   * as there are pre-allocated constant Rotation2ds available
+   * @param x X coordinate
+   * @param y Y coordinate
+   * @param rotation Heading, in degrees
+   */
+  public static Pose2d buildPose(double x, double y, double rotation)
+    {return new Pose2d(x, y, new Rotation2d(Units.degreesToRadians(rotation)));}
 }

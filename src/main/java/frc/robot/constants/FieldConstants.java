@@ -32,7 +32,7 @@ public class FieldConstants
   public static final Pose2d rkLineup = raLineup.rotateAround(reefCentre, new Rotation2d(Units.degreesToRadians(60)));
   public static final Pose2d rlLineup = rbLineup.rotateAround(reefCentre, new Rotation2d(Units.degreesToRadians(60)));
 
-  public static Pose2d getReefLineup(String name)
+  public static Pose2d getLineup(String name)
   {
     switch (name) {
       case "ra":
