@@ -140,7 +140,7 @@ public abstract class SwerveCommandBase extends Command
    */
   protected double combinedBrake()
   {
-    return Math.max(brakeSup.getAsDouble(), 1);
+    return brakeSup.getAsDouble();
   }
 
   /** Adjust the virtual radius of the robot to protect the robot under different conditions */

@@ -13,11 +13,11 @@ public class FieldConstants
   public static final ArrayList<Translation2d> blueReefMidpoints = FieldUtils.GeoFencing.reefBlue.getMidPoints();
   public static final ArrayList<Translation2d> redReefMidpoints = FieldUtils.GeoFencing.reefRed.getMidPoints();
   
-  private static final double reefFaceOffset = 0.4;
-  private static final Translation2d reefSidewaysOffset = new Translation2d(0, 0.2);
+  private static final double reefFaceOffset = 0.45;
+  private static final Translation2d reefSidewaysOffset = new Translation2d(0, 0.15);
 
   private static final Translation2d reefCentre = new Translation2d(4.489, FieldUtils.fieldWidth / 2);
-  private static final Translation2d r1CentreLineup = reefCentre.minus(new Translation2d(reefFaceOffset, 0));
+  private static final Translation2d r1CentreLineup = reefCentre.minus(new Translation2d(reefFaceOffset + (FieldUtils.GeoFencing.inscribedReefDiameter / 2), 0));
 
   public static final Pose2d raLineup = new Pose2d(r1CentreLineup.plus(reefSidewaysOffset), Rotation2d.kZero);
   public static final Pose2d rbLineup = new Pose2d(r1CentreLineup.minus(reefSidewaysOffset), Rotation2d.kZero);

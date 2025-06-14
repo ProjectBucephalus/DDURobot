@@ -51,7 +51,9 @@ public class SD
       (
         IO_POSE_X,
         IO_POSE_Y,
-        IO_POSE_R
+        IO_POSE_R,
+        IO_GEOFENCE,
+        IO_AUTO
       )
     )
     {

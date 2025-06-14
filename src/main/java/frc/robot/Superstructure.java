@@ -44,6 +44,8 @@ public class Superstructure
     s_Swerve = TunerConstants.createDrivetrain();
     s_Coral = new CoralRoller();
 
+    updateSwerveState();
+
     SmartDashboard.putData("Field", field);
 
     bindControls();
