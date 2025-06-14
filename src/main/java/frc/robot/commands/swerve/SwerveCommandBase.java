@@ -1,14 +1,16 @@
 package frc.robot.commands.swerve;
 
-import frc.robot.RobotContainer;
 import frc.robot.constants.Constants;
 import frc.robot.constants.Constants.Control;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.util.FieldUtils;
+import frc.robot.util.GeoFenceObject;
 import frc.robot.util.SD;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -23,9 +25,8 @@ public abstract class SwerveCommandBase extends Command
 
   protected DoubleSupplier translationSup;
   protected DoubleSupplier strafeSup;
-  protected Supplier<Translation2d> posSup;
+  protected Supplier<SwerveDriveState> swerveStateSup;
   protected DoubleSupplier brakeSup;
-  protected BooleanSupplier fencedSup;
   
   protected double translationVal;
   protected double strafeVal;
@@ -33,21 +34,22 @@ public abstract class SwerveCommandBase extends Command
   protected double motionXYCache;
   protected Translation2d robotXY;  
   protected double brakeVal;
+  protected SwerveDriveState swerveState;
 
   protected double robotSpeed;
   protected double robotRadius;
+  protected GeoFenceObject[] fieldGeoFence;
   protected boolean redAlliance;
 
   /** Creates a new SwerveCommandBase. This has no rotation or drive-request methods or objects */
-  public SwerveCommandBase(CommandSwerveDrivetrain s_Swerve, Supplier<Translation2d> posSup, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier brakeSup, BooleanSupplier fencedSup) 
+  public SwerveCommandBase(CommandSwerveDrivetrain s_Swerve, Supplier<SwerveDriveState> swerveStateSup, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier brakeSup) 
   {
     this.s_Swerve = s_Swerve;
     
-    this.posSup = posSup;
+    this.swerveStateSup = swerveStateSup;
     this.translationSup = translationSup;
     this.strafeSup = strafeSup;    
     this.brakeSup = brakeSup;
-    this.fencedSup = fencedSup;
 
     addRequirements(s_Swerve);
   }
@@ -75,7 +77,7 @@ public abstract class SwerveCommandBase extends Command
   protected Translation2d processXY()
   {
     /* Get values */
-    robotXY = posSup.get();
+    swerveState = swerveStateSup.get();
     translationVal = translationSup.getAsDouble();
     strafeVal = strafeSup.getAsDouble();
     motionXY = new Translation2d(translationVal, strafeVal);
@@ -90,7 +92,7 @@ public abstract class SwerveCommandBase extends Command
     
     if (SD.IO_LL.get())
     {
-      robotSpeed = Math.hypot(RobotContainer.swerveState.Speeds.vxMetersPerSecond, RobotContainer.swerveState.Speeds.vyMetersPerSecond);
+      robotSpeed = Math.hypot(swerveState.Speeds.vxMetersPerSecond, swerveState.Speeds.vyMetersPerSecond);
       
       updateRobotRadius();
       
@@ -99,25 +101,20 @@ public abstract class SwerveCommandBase extends Command
       // Invert processing input when on red alliance
       if (redAlliance)
         {motionXY = motionXY.unaryMinus();}
-
-      if (RobotContainer.s_Diffector.getElevation() > DiffectorGeometry.bargeSafetyHeight && SD.IO_BARGE_PROTECTION.get())
-      {
-        motionXY = FieldUtils.GeoFencing.netProtectionZone.dampMotion(RobotContainer.swerveState.Pose.getTranslation(), motionXY, robotRadius);
-      }
       
-      if (fencedSup.getAsBoolean() && SD.IO_GEOFENCE.get())
+      if (SD.IO_GEOFENCE.get())
       {   
         // Read down the list of geofence objects
         // Outer wall is index 0, so has highest authority by being processed last
         for (int i = fieldGeoFence.length - 1; i >= 0; i--)
         {
-          Translation2d inputDamping = fieldGeoFence[i].dampMotion(RobotContainer.swerveState.Pose.getTranslation(), motionXY, robotRadius);
+          Translation2d inputDamping = fieldGeoFence[i].dampMotion(swerveState.Pose.getTranslation(), motionXY, robotRadius);
           motionXY = inputDamping;
         }
 
         if (SD.IO_OUTER_GEOFENCE.get())
         {
-          Translation2d inputDamping = FieldUtils.GeoFencing.field.dampMotion(RobotContainer.swerveState.Pose.getTranslation(), motionXY, robotRadius);
+          Translation2d inputDamping = FieldUtils.GeoFencing.field.dampMotion(swerveState.Pose.getTranslation(), motionXY, robotRadius);
           motionXY = inputDamping;
         }
       } 
@@ -143,18 +140,7 @@ public abstract class SwerveCommandBase extends Command
    */
   protected double combinedBrake()
   {
-    return 
-    (
-      Math.max
-      (
-        brakeSup.getAsDouble(), 
-        Math.min
-        (
-          (RobotContainer.s_Diffector.getElevation() - 1) * Constants.Control.armBrakeRate, 
-          1
-        )
-      )
-    );
+    return Math.max(brakeSup.getAsDouble(), 1);
   }
 
   /** Adjust the virtual radius of the robot to protect the robot under different conditions */

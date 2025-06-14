@@ -1,13 +1,13 @@
 package frc.robot.commands.swerve;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveModule.SteerRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.RobotContainer;
 import frc.robot.constants.Constants.Swerve;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.util.SD;
@@ -31,15 +31,15 @@ public class HeadingLockedDrive extends SwerveCommandBase
   public HeadingLockedDrive
   (
     CommandSwerveDrivetrain s_Swerve, 
+    Supplier<SwerveDriveState> swerveStateSup, 
     DoubleSupplier translationSup, 
     DoubleSupplier strafeSup, 
     Rotation2d targetHeading, 
     Rotation2d rotationOffset, 
-    DoubleSupplier brakeSup, 
-    BooleanSupplier fencedSup
+    DoubleSupplier brakeSup
   ) 
   {
-    super(s_Swerve, translationSup, strafeSup, brakeSup, fencedSup);
+    super(s_Swerve, swerveStateSup, translationSup, strafeSup, brakeSup);
 
     rotationKP = Swerve.rotationKP;
     rotationKI = Swerve.rotationKI;
@@ -78,17 +78,8 @@ public class HeadingLockedDrive extends SwerveCommandBase
   /** Processing to dynamicaly update the heading PID */
   protected void updateRotationPID()
   {
-    if (RobotContainer.algae)
-    {
-      rotationKP = Swerve.rotationKPAlgae;
-      rotationKI = Swerve.rotationKIAlgae;
-      rotationKD = Swerve.rotationKDAlgae;
-    }
-    else
-    {
-      rotationKP = Swerve.rotationKP;
-      rotationKI = Swerve.rotationKI;
-      rotationKD = Swerve.rotationKD;
-    }
+    rotationKP = Swerve.rotationKP;
+    rotationKI = Swerve.rotationKI;
+    rotationKD = Swerve.rotationKD;
   }
 }
