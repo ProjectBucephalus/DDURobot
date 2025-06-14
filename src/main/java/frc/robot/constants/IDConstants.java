@@ -28,5 +28,10 @@ public final class IDConstants
 
   public static final int pigeonID = 53; // Pigeon ID hardset to 53, we can't change it
 
+  /* Mechanism */
+  /* _________ */
+
+  public static final int coralRollerID = 13;
+  public static final int coralSensorDIO = 0;
  
 }

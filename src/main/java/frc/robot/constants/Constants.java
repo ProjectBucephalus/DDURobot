@@ -64,4 +64,11 @@ public final class Constants
     /** Radians per Second */
     public static final double maxAngularVelocity = 4;
   }
+
+  public static final class Coral
+  {
+    
+    public static final double forwardSpeed = 0.5;
+    public static final double reverseSpeed = -0.5;
+  }
 }
