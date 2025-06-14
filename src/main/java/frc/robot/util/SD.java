@@ -42,6 +42,11 @@ public class SD
   public static final DoubleKey IO_POSE_R = new DoubleKey("Pose Rotation", 0.0);
   public static final StringKey IO_AUTO = new StringKey("Auto String", "");
 
+  public static final DoubleKey IO_CORALSPEED_F = new DoubleKey("Coral Roller Forward Speed", Constants.Coral.forwardSpeed);
+  public static final DoubleKey IO_CORALSPEED_R = new DoubleKey("Coral Roller Reverse Speed", Constants.Coral.reverseSpeed);
+  public static final DoubleKey IO_ALGAESPEED_F = new DoubleKey("Algae Roller Forward Speed", Constants.Algae.forwardSpeed);
+  public static final DoubleKey IO_ALGAESPEED_R = new DoubleKey("Algae Roller Reverse Speed", Constants.Algae.reverseSpeed);
+
   static
   {
     for 
