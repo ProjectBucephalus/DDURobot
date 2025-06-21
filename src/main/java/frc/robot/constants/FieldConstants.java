@@ -7,10 +7,10 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.util.GeoFenceObject;
-import frc.robot.util.GeoFenceObject.ObjectTypes;
-import frc.robot.util.controlTransmutation.geoFence.Fence;
-import frc.robot.util.controlTransmutation.geoFence.Line;
+import frc.robot.util.FieldUtils;
+import frc.robot.util.controlTransmutation.FieldObject;
+import frc.robot.util.controlTransmutation.ObjectList;
+import frc.robot.util.controlTransmutation.geoFence.*;
 
 public class FieldConstants 
 {
@@ -90,7 +90,7 @@ public class FieldConstants
 
   public static final double coralStationRange = 0.6;
 
-    public final class GeoFencing
+  public static final class GeoFencing
   {   
     // Relative to the centre of the robot, in direction the robot is facing
     // These values are the distance in metres to the virtual wall the robot will stop at
@@ -149,49 +149,38 @@ public class FieldConstants
       wallRadius
     );
 
-    public static final GeoFenceObject reefBlue      = new GeoFenceObject(4.489, 4.026, reefBuffer, circumscribedReefDiameter / 2, 0, 6);
-    public static final GeoFenceObject reefZoneBlue  = new GeoFenceObject(4.489, 4.026, reefBuffer, penaltyReefZoneDiameter / 2, 0, 6);
-    public static final GeoFenceObject reefRed       = new GeoFenceObject(13.059, 4.026, reefBuffer, circumscribedReefDiameter / 2, 180, 6);
-    public static final GeoFenceObject reefZoneRed   = new GeoFenceObject(13.059, 4.026, reefBuffer, penaltyReefZoneDiameter / 2, 180, 6);
-    public static final GeoFenceObject bargeColumn   = new GeoFenceObject(8.774, 4.026, 0.25, 0.15);
-    public static final GeoFenceObject bargeZoneBlue = new GeoFenceObject(8.190, 4.331, 9.358, fieldWidth, bargeBuffer, 0.1, ObjectTypes.box);
-    public static final GeoFenceObject bargeZoneRed  = new GeoFenceObject(8.190, 3.721, 9.358, 0, bargeBuffer, 0.1, ObjectTypes.box);
-    public static final Line cornerSBlue   = new Line(fieldWest, fieldSouth + cornerWidth, fieldWest + cornerLength, fieldSouth, wallBuffer);
-    public static final Line cornerNBlue   = new Line(fieldWest, fieldNorth - cornerWidth, fieldWest + cornerLength, fieldNorth, wallBuffer);
-    public static final Line cornerSRed    = new Line(fieldEast, fieldSouth + cornerWidth, fieldEast - cornerLength, fieldSouth, wallBuffer);
-    public static final Line cornerNRed    = new Line(fieldEast, fieldNorth - cornerWidth, fieldEast - cornerLength, fieldNorth, wallBuffer);
+    public static final Polygon reefBlue      = new Polygon(4.489, 4.026, reefBuffer, circumscribedReefDiameter / 2, 0, 6);
+    public static final Polygon reefZoneBlue  = new Polygon(4.489, 4.026, reefBuffer, penaltyReefZoneDiameter / 2, 0, 6);
+    public static final Polygon reefRed       = new Polygon(13.059, 4.026, reefBuffer, circumscribedReefDiameter / 2, 180, 6);
+    public static final Polygon reefZoneRed   = new Polygon(13.059, 4.026, reefBuffer, penaltyReefZoneDiameter / 2, 180, 6);
+    public static final Point bargeColumn   = new Point(8.774, 4.026, 0.25, 0.15);
+    public static final Box bargeZoneBlue = new Box(8.190, 4.331, 9.358, fieldWidth, bargeBuffer, 0.1);
+    public static final Box bargeZoneRed  = new Box(8.190, 3.721, 9.358, 0, bargeBuffer, 0.1);
+    public static final Line cornerSBlue   = new Line(fieldWest, fieldSouth + cornerWidth, fieldWest + cornerLength, fieldSouth, wallBuffer, wallRadius);
+    public static final Line cornerNBlue   = new Line(fieldWest, fieldNorth - cornerWidth, fieldWest + cornerLength, fieldNorth, wallBuffer, wallRadius);
+    public static final Line cornerSRed    = new Line(fieldEast, fieldSouth + cornerWidth, fieldEast - cornerLength, fieldSouth, wallBuffer, wallRadius);
+    public static final Line cornerNRed    = new Line(fieldEast, fieldNorth - cornerWidth, fieldEast - cornerLength, fieldNorth, wallBuffer, wallRadius);
     
-    public static final GeoFenceObject[] fieldBlueGeoFence = 
-    {
+    public static final ObjectList fieldBlueGeoFence = new ObjectList
+    (
       reefBlue, 
       reefZoneRed, 
       bargeColumn, 
       bargeZoneRed,
       cornerSBlue, 
       cornerNBlue
-    };
+    );
 
-    public static final GeoFenceObject[] fieldRedGeoFence = 
-    {
+    public static final ObjectList fieldRedGeoFence = new ObjectList
+    (
       reefRed, 
       reefZoneBlue, 
       bargeColumn, 
       bargeZoneBlue,
       cornerSRed, 
       cornerNRed
-    };
-    
-    public static final Pair<Translation2d, Translation2d> blueAllianceBargeDynamic = new Pair<Translation2d,Translation2d>(new Translation2d(8.19, 3.721), new Translation2d(9.358, 0));
-    public static final Pair<Translation2d, Translation2d> redAllianceBargeDynamic = new Pair<Translation2d,Translation2d>(new Translation2d(8.19, 4.331), new Translation2d(9.358, fieldWidth));
-  }
+    );
 
-  public static final class DriverFieldRefs
-  {
-    public static final Translation2d driverBlue1 = new Translation2d(0.0, 5.278);
-    public static final Translation2d driverBlue2 = new Translation2d(0.0, 4.026);
-    public static final Translation2d driverBlue3 = new Translation2d(0.0,2.278);
-    public static final Translation2d driverRed1 = new Translation2d(fieldLength,2.278);
-    public static final Translation2d driverRed2 = new Translation2d(fieldLength,4.026);
-    public static final Translation2d driverRed3 = new Translation2d(fieldLength,5.278);
+    public static final ObjectList fieldGeoFence = new ObjectList(fieldBlueGeoFence, fieldRedGeoFence, field);
   }
 }

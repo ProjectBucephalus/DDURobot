@@ -7,11 +7,11 @@ package frc.robot.commands.swerve;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveModule.*;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.constants.Constants.Control;
 import frc.robot.constants.Constants.Swerve;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -29,21 +29,24 @@ public class ManualDrive extends SwerveCommandBase
     .withSteerRequestType(SteerRequestType.MotionMagicExpo);
 
   /** Creates a new ManualDrive. */
-  public ManualDrive(CommandSwerveDrivetrain s_Swerve, Supplier<SwerveDriveState> swerveStateSup, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier rotationSup, DoubleSupplier brakeSup) 
+  public ManualDrive(CommandSwerveDrivetrain s_Swerve, Supplier<Translation2d> joystickSupplier, DoubleSupplier rotationSup) 
   {
-    super(s_Swerve, swerveStateSup, translationSup, strafeSup, brakeSup);
+    super(s_Swerve, joystickSupplier);
     this.rotationSup = rotationSup;
   }
 
   @Override
   public void execute()
   {
-    processXY();
+    motionXY = joystickSupplier.get();
 
     /* Get and process Rotation input */
     rotationVal = rotationSup.getAsDouble();
-    if (Math.abs(rotationVal) <= deadband) {rotationVal = 0;}
-    rotationVal *= MathUtil.interpolate(Control.maxRotThrottle, Control.minRotThrottle, brakeVal);
+
+    if (Math.abs(rotationVal) <= deadband) 
+      {rotationVal = 0;}
+    else
+      {rotationVal *= MathUtil.interpolate(Control.maxRotThrottle, Control.minRotThrottle, brakeVal);}
 
     if (motionXY.getNorm() != 0)
       {SD.STATE_DRIVE.put("Manual");}

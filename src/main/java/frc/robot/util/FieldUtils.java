@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.FieldConstants.GeoFencing;
+import frc.robot.util.controlTransmutation.geoFence.Line;
 
 public class FieldUtils 
 {
@@ -61,9 +62,18 @@ public class FieldUtils
     return pose;
   }
 
-  public static GeoFenceObject[] getAllianceFencing() 
+  public static void activateAllianceFencing() 
   {
-    return isRedAlliance() ? GeoFencing.fieldRedGeoFence : GeoFencing.fieldBlueGeoFence;
+    if (isRedAlliance())
+    {
+      GeoFencing.fieldRedGeoFence.setActive();
+      GeoFencing.fieldBlueGeoFence.setInactive();
+    } 
+    else
+    {
+      GeoFencing.fieldBlueGeoFence.setActive();
+      GeoFencing.fieldRedGeoFence.setInactive();
+    }
   }
 
   public static int getNearestReefFaceAllianceLocked(Translation2d robotPos)
@@ -93,7 +103,7 @@ public class FieldUtils
     return nearestReefFace;
   }
 
-  public static GeoFenceObject getNearestCoralStation(Translation2d robotPos)
+  public static Line getNearestCoralStation(Translation2d robotPos)
   {
     boolean northHalf = robotPos.getY() >= FieldConstants.fieldCentre.getY();
 
