@@ -8,15 +8,16 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.swerve.ManualDrive;
 import frc.robot.constants.Constants;
 import frc.robot.constants.IDConstants;
+import frc.robot.constants.FieldConstants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralRoller;
@@ -26,15 +27,13 @@ import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;
 import frc.robot.util.Telemetry;
-import frc.robot.util.controlTransmutation.InputFunction.JoystickTransmuter;
+import frc.robot.util.controlTransmutation.Brake;
+import frc.robot.util.controlTransmutation.FieldObject;
+import frc.robot.util.controlTransmutation.JoystickTransmuter;
 
 public class Superstructure 
 {
-  /* Driver Control Axes */
-  private final int translationAxis = Axis.kLeftY.value;
-  private final int strafeAxis      = Axis.kLeftX.value;
-  private final int rotationAxis    = Axis.kRightX.value;
-  private final int brakeAxis       = Axis.kRightTrigger.value;
+  enum TargetPosition {Left, Right, Centre}
   
   private final Telemetry logger;
   
@@ -45,6 +44,8 @@ public class Superstructure
   private static CoralRoller s_Coral;
   private static Limelight s_foreLL;
   private static Limelight s_aftLL;
+  
+  private TargetPosition currentTarget;
 
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController copilot = new CommandXboxController(1);
@@ -53,9 +54,9 @@ public class Superstructure
   private final RumbleRequester io_copilotRight  = new RumbleRequester(copilot, RumbleType.kRightRumble, SD.RUMBLE_C_R::put, SD.IO_RUMBLE_C::get);
   private final RumbleRequester io_copilotLeft   = new RumbleRequester(copilot, RumbleType.kLeftRumble, SD.RUMBLE_C_L::put, SD.IO_RUMBLE_C::get);
   
-  
-  //public final JoystickTransmuter driverStick = new JoystickTransmuter(() -> -driver.getRawAxis(translationAxis), () -> -driver.getRawAxis(strafeAxis));
-  
+  private final JoystickTransmuter driverStick = new JoystickTransmuter(driver::getLeftY, driver::getLeftX);
+  private final Brake driverBrake = new Brake(driver::getRightTriggerAxis, Constants.Control.maxThrottle, Constants.Control.minThrottle);
+
   public Superstructure()
   {
     field = new Field2d();
@@ -71,6 +72,10 @@ public class Superstructure
     SmartDashboard.putData("Field", field);
 
     s_Swerve.registerTelemetry(logger::telemeterize);
+    driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake);
+    FieldConstants.GeoFencing.fieldGeoFence.setInactive();
+    FieldObject.setRobotRadiusSup(this::robotRadiusSup);
+    FieldObject.setRobotPosSup(swerveState.Pose::getTranslation);
 
     bindControls();
     bindRumbles();
@@ -92,11 +97,9 @@ public class Superstructure
       new ManualDrive
       (
         s_Swerve, 
-        this::getSwerveState, 
-        () -> -driver.getRawAxis(translationAxis), 
-        () -> -driver.getRawAxis(strafeAxis), 
-        () -> -driver.getRawAxis(rotationAxis), 
-        () -> driver.getRawAxis(brakeAxis)
+        driverStick::stickOutput,
+        () -> -driver.getRightX(),
+        driver::getRightTriggerAxis
       )
     );
 
@@ -105,6 +108,10 @@ public class Superstructure
     copilot.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_F.get()));
     copilot.rightBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
     new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
+    
+    copilot.povLeft().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
+    copilot.povRight().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
+    copilot.povUp().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
   }
 
   private void bindRumbles()
@@ -126,5 +133,15 @@ public class Superstructure
   public static void setVisionMeasurementStdDevs(Matrix<N3, N1> visionMeasurementStdDevs)
   {
     s_Swerve.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
+  }
+  
+  public double robotRadiusSup() 
+  {
+    double robotSpeed = Math.hypot(swerveState.Speeds.vxMetersPerSecond, swerveState.Speeds.vyMetersPerSecond);
+
+    return
+    robotSpeed >= FieldConstants.GeoFencing.robotSpeedThreshold ?
+    FieldConstants.GeoFencing.robotRadiusCircumscribed :
+    FieldConstants.GeoFencing.robotRadiusInscribed;
   }
 }

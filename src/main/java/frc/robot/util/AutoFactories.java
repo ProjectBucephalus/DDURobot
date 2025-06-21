@@ -46,8 +46,8 @@ public class AutoFactories
           Translation2d posTarget = 
           new Translation2d
           (
-            MathUtil.clamp(Double.parseDouble(splitCommand.substring(1, seperatorIndex)), 0.5, (FieldUtils.fieldLength / 2) - 0.5), 
-            MathUtil.clamp(Double.parseDouble(splitCommand.substring(seperatorIndex + 1)), 0.5, FieldUtils.fieldWidth - 0.5)
+            MathUtil.clamp(Double.parseDouble(splitCommand.substring(1, seperatorIndex)), 0.5, (FieldConstants.fieldCentre.getX()) - 0.5), 
+            MathUtil.clamp(Double.parseDouble(splitCommand.substring(seperatorIndex + 1)), 0.5, FieldConstants.fieldWidth - 0.5)
           );
 
           Rotation2d rotationTarget = 
