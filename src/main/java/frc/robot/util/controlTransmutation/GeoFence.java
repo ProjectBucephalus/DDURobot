@@ -8,7 +8,7 @@ import frc.robot.util.Conversions;
 public abstract class GeoFence extends FieldObject
 {
   // Inherits from FieldObject: T2D centre, double radius, double buffer, double checkRadius
-  protected ArrayList<Attractor> attractors;
+  protected ArrayList<Attractor> attractors = new ArrayList<Attractor>();
 
   @Override
   public Translation2d process(Translation2d controlInput)
