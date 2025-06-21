@@ -1,13 +1,12 @@
 package frc.robot.commands.swerve;
 
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveModule.SteerRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.constants.Constants.Swerve;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.util.SD;
@@ -30,16 +29,13 @@ public class HeadingLockedDrive extends SwerveCommandBase
   /** Creates a new ManualDrive. */
   public HeadingLockedDrive
   (
-    CommandSwerveDrivetrain s_Swerve, 
-    Supplier<SwerveDriveState> swerveStateSup, 
-    DoubleSupplier translationSup, 
-    DoubleSupplier strafeSup, 
+    CommandSwerveDrivetrain s_Swerve,  
+    Supplier<Translation2d> joystickSupplier,
     Rotation2d targetHeading, 
-    Rotation2d rotationOffset, 
-    DoubleSupplier brakeSup
+    Rotation2d rotationOffset
   ) 
   {
-    super(s_Swerve, swerveStateSup, translationSup, strafeSup, brakeSup);
+    super(s_Swerve, joystickSupplier);
 
     rotationKP = Swerve.rotationKP;
     rotationKI = Swerve.rotationKI;
@@ -54,7 +50,7 @@ public class HeadingLockedDrive extends SwerveCommandBase
   @Override
   public void execute()
   {
-    processXY();
+    motionXY = joystickSupplier.get();
 
     updateTargetHeading();
     updateRotationPID();

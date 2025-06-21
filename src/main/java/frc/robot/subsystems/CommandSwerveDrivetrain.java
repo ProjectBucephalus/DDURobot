@@ -31,7 +31,6 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.util.FieldUtils;
-import frc.robot.util.GeoFenceObject;
 import frc.robot.util.SD;
 
 /**
@@ -289,7 +288,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
       if (SD.IO_GEOFENCE.get())
       {   
-        final GeoFenceObject[] fieldGeoFence = FieldUtils.getAllianceFencing();
+        final GeoFenceObject[] fieldGeoFence = FieldUtils.activateAllianceFencing();
         Translation2d motionXY = new Translation2d(speedX / maxSpeed, speedY / maxSpeed);
 
         for (int i = fieldGeoFence.length - 1; i >= 0; i--)
