@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.swerve.ManualDrive;
@@ -23,6 +24,8 @@ import frc.robot.util.controlTransmutation.InputFunction.JoystickTransmuter;
 
 public class Superstructure 
 {
+  enum TargetPosition {Left, Right, Centre}
+
   /* Driver Control Axes */
   private final int translationAxis = Axis.kLeftY.value;
   private final int strafeAxis      = Axis.kLeftX.value;
@@ -33,6 +36,7 @@ public class Superstructure
   
   private SwerveDriveState swerveState;
   private Field2d field;
+  private TargetPosition currentTarget;
 
   private final CommandSwerveDrivetrain s_Swerve;
   private final CoralRoller s_Coral;
@@ -94,6 +98,10 @@ public class Superstructure
     copilot.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_F.get()));
     copilot.rightBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
     new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
+    
+    copilot.povLeft().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
+    copilot.povRight().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
+    copilot.povUp().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
   }
 
   private void bindRumbles()
