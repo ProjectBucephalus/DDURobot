@@ -2,13 +2,10 @@ package frc.robot.constants;
 
 import java.util.ArrayList;
 
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.util.FieldUtils;
-import frc.robot.util.controlTransmutation.FieldObject;
 import frc.robot.util.controlTransmutation.ObjectList;
 import frc.robot.util.controlTransmutation.geoFence.*;
 
