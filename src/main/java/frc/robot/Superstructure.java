@@ -85,7 +85,8 @@ public class Superstructure
       (
         s_Swerve, 
         driverStick::stickOutput,
-        driver::getRightX
+        driver::getRightX,
+        driver::getRightTriggerAxis
       )
     );
 

@@ -22,6 +22,7 @@ public class ManualDrive extends SwerveCommandBase
 {
   protected DoubleSupplier rotationSup;
   protected double rotationVal;
+  protected DoubleSupplier brakeSup;
 
   protected final SwerveRequest.FieldCentric driveRequest = new SwerveRequest
     .FieldCentric() 
@@ -29,10 +30,11 @@ public class ManualDrive extends SwerveCommandBase
     .withSteerRequestType(SteerRequestType.MotionMagicExpo);
 
   /** Creates a new ManualDrive. */
-  public ManualDrive(CommandSwerveDrivetrain s_Swerve, Supplier<Translation2d> joystickSupplier, DoubleSupplier rotationSup) 
+  public ManualDrive(CommandSwerveDrivetrain s_Swerve, Supplier<Translation2d> joystickSupplier, DoubleSupplier rotationSup, DoubleSupplier brakeSup) 
   {
     super(s_Swerve, joystickSupplier);
     this.rotationSup = rotationSup;
+    this.brakeSup = brakeSup;
   }
 
   @Override
@@ -46,7 +48,7 @@ public class ManualDrive extends SwerveCommandBase
     if (Math.abs(rotationVal) <= deadband) 
       {rotationVal = 0;}
     else
-      {rotationVal *= MathUtil.interpolate(Control.maxRotThrottle, Control.minRotThrottle, brakeVal);}
+      {rotationVal *= MathUtil.interpolate(Control.maxRotThrottle, Control.minRotThrottle, brakeSup.getAsDouble());}
 
     if (motionXY.getNorm() != 0)
       {SD.STATE_DRIVE.put("Manual");}
