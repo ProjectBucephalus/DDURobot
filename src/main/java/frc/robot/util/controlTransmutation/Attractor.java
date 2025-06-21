@@ -6,12 +6,15 @@ import edu.wpi.first.math.geometry.Translation2d;
 /** Guides the robot towards a point along a given heading */
 public class Attractor extends FieldObject
 {
+  /** Angle of the robot motion for the final approach, degrees */
   protected double approachHeading;
+  /** Angle of the robot motion for the final approach */
   protected Rotation2d approachHeadingRotation;
   /** Point where the approach heading intersects the effect radius */
   protected Translation2d frontCheckpoint;
   /** Point opposite where the approach heading intersects the effect radius */
   protected Translation2d backCheckpoint;
+
 
   /**
    * Pulls the robot into the target point along the given heading if the control input is within a certain tollerance
@@ -30,12 +33,13 @@ public class Attractor extends FieldObject
 
     approachHeadingRotation = Rotation2d.fromDegrees(approachHeading);
 
-    frontCheckpoint = centre.minus(new Translation2d(radius, approachHeadingRotation));
-    backCheckpoint  = centre.plus(new Translation2d(radius, approachHeadingRotation));
+    frontCheckpoint = centre.minus(new Translation2d(buffer, approachHeadingRotation));
+    backCheckpoint  = centre.plus(new Translation2d(buffer, approachHeadingRotation));
 
 
   }
 
+  @Override
   public Translation2d process(Translation2d controlInput)
   {
     if (controlInput.equals(Translation2d.kZero) || !checkPosition())
@@ -50,6 +54,7 @@ public class Attractor extends FieldObject
     return controlInput;
   }
 
+  @Override
   public boolean checkPosition()
   {
     return
