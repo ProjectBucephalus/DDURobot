@@ -1,7 +1,5 @@
 package frc.robot.util.controlTransmutation;
 
-import java.util.ArrayList;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -34,10 +32,19 @@ public class Restrictor extends FieldObject
     checkRadius = radius + buffer;
   }
 
-  /** Generic constructor, creates a point at (0,0) */
+  /**
+   * Basic point-type restrictor object
+   * @param x X-coordinate of the point
+   * @param y Y-coordinate of the point
+   * @param radius Radius of the circle (0 for point)
+   * @param buffer Buffer around the object over which the speed is reduced
+   * @param localSpeedLimit Maximum speed when fully in the area (0.05..1] </p>
+   * Set localSpeedLimit = 0 to use the object as a position/distance check
+   */
   public Restrictor()
     {this(0, 0, 0, 0, 0);}
 
+  @Override
   public Translation2d process(Translation2d controlInput)
   {
     if (localSpeedLimit > 0 && checkPosition() && !controlInput.equals(Translation2d.kZero))
