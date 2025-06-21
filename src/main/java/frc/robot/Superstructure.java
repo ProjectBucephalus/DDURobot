@@ -1,7 +1,12 @@
 package frc.robot;
 
+import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -11,9 +16,11 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.swerve.ManualDrive;
 import frc.robot.constants.Constants;
+import frc.robot.constants.IDConstants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralRoller;
+import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.RumbleRequester;
 import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
@@ -33,9 +40,11 @@ public class Superstructure
   
   private SwerveDriveState swerveState;
   private Field2d field;
-
-  private final CommandSwerveDrivetrain s_Swerve;
-  private final CoralRoller s_Coral;
+  
+  private static CommandSwerveDrivetrain s_Swerve;
+  private static CoralRoller s_Coral;
+  private static Limelight s_foreLL;
+  private static Limelight s_aftLL;
 
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController copilot = new CommandXboxController(1);
@@ -45,13 +54,15 @@ public class Superstructure
   private final RumbleRequester io_copilotLeft   = new RumbleRequester(copilot, RumbleType.kLeftRumble, SD.RUMBLE_C_L::put, SD.IO_RUMBLE_C::get);
   
   
-  public final JoystickTransmuter driverStick = new JoystickTransmuter(() -> -driver.getRawAxis(translationAxis), () -> -driver.getRawAxis(strafeAxis));
+  //public final JoystickTransmuter driverStick = new JoystickTransmuter(() -> -driver.getRawAxis(translationAxis), () -> -driver.getRawAxis(strafeAxis));
   
   public Superstructure()
   {
     field = new Field2d();
     s_Swerve = TunerConstants.createDrivetrain();
     s_Coral = new CoralRoller();
+    s_foreLL = new Limelight("fore");
+    s_aftLL = new Limelight("aft");
 
     logger = new Telemetry(Constants.Swerve.maxSpeed);
 
@@ -105,5 +116,15 @@ public class Superstructure
   public Command getAutonomousCommand() 
   {
     return AutoFactories.getCommandList(SD.IO_AUTO.get(), s_Coral, s_Swerve, this::getSwerveState);
+  }
+
+  public static void addVisionMeasurement(Pose2d poseMeasurement, double timestamp)
+  {
+    s_Swerve.addVisionMeasurement(poseMeasurement, timestamp);
+  }
+
+  public static void setVisionMeasurementStdDevs(Matrix<N3, N1> visionMeasurementStdDevs)
+  {
+    s_Swerve.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
   }
 }
