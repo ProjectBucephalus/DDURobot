@@ -28,10 +28,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.constants.Constants;
-import frc.robot.constants.FieldConstants;
 import frc.robot.constants.TunerConstants.TunerSwerveDrivetrain;
-import frc.robot.util.FieldUtils;
-import frc.robot.util.SD;
+import frc.robot.util.controlTransmutation.PIDDriveTransmuter;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -39,9 +37,8 @@ import frc.robot.util.SD;
  */
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem, Sendable 
 {
-  private final PIDController xController = new PIDController(Constants.Swerve.driveKP, Constants.Swerve.driveKI, Constants.Swerve.driveKD);
-  private final PIDController yController = new PIDController(Constants.Swerve.driveKP, Constants.Swerve.driveKI, Constants.Swerve.driveKD);
   private final PIDController thetaController = new PIDController(Constants.Swerve.rotationKP, Constants.Swerve.rotationKI, Constants.Swerve.rotationKD);
+  private final PIDDriveTransmuter pidTransmuter = new PIDDriveTransmuter(Constants.Swerve.driveKP, Constants.Swerve.driveKI, Constants.Swerve.driveKD);
 
   private static final double kSimLoopPeriod = 0.005; // 5 ms
   private Notifier m_simNotifier = null;
@@ -275,6 +272,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     final var driveRequest = new SwerveRequest
       .ApplyRobotSpeeds();    
 
+    pidTransmuter.withTargetPoseSup(targetSupplier);
+
     return 
     run
     (() -> {
@@ -283,25 +282,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
       final double speedTheta = 
         Math.min(thetaController.calculate(pose.getRotation().getRadians(), target.getRotation().getRadians()), Constants.Swerve.maxAngularVelocity);
-      double speedX = Math.min(xController.calculate(pose.getX(), target.getX()), Constants.Swerve.maxSpeed);
-      double speedY = Math.min(yController.calculate(pose.getY(), target.getY()), Constants.Swerve.maxSpeed);
-
-      if (SD.IO_GEOFENCE.get())
-      {   
-        final GeoFenceObject[] fieldGeoFence = FieldUtils.activateAllianceFencing();
-        Translation2d motionXY = new Translation2d(speedX / maxSpeed, speedY / maxSpeed);
-
-        for (int i = fieldGeoFence.length - 1; i >= 0; i--)
-        {
-          motionXY = fieldGeoFence[i].dampMotion(pose.getTranslation(), motionXY, FieldConstants.GeoFencing.robotRadiusCircumscribed);
-        }
-
-        if (SD.IO_OUTER_GEOFENCE.get())
-          motionXY = FieldConstants.GeoFencing.field.dampMotion(pose.getTranslation(), motionXY, FieldConstants.GeoFencing.robotRadiusCircumscribed);
-
-        speedX = motionXY.getX() * maxSpeed;
-        speedY = motionXY.getY() * maxSpeed;
-      } 
+      final Translation2d throttleXY = pidTransmuter.process(pose.getTranslation());
 
       setControl
       (
@@ -311,8 +292,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             (
               new ChassisSpeeds
               (
-                speedX,
-                speedY,
+                throttleXY.getX() * maxSpeed,
+                throttleXY.getY() * maxSpeed,
                 speedTheta
               ),
               pose.getRotation()
