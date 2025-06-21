@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import frc.robot.constants.FieldConstants;
 
 public class AlliancePose2dSup implements Supplier<Pose2d>
 {
@@ -28,6 +29,6 @@ public class AlliancePose2dSup implements Supplier<Pose2d>
   @Override
   public Pose2d get() 
   {
-    return FieldUtils.isRedAlliance() ? poseBlue.rotateAround(FieldUtils.fieldCentre, Rotation2d.k180deg) : poseBlue;
+    return FieldUtils.isRedAlliance() ? poseBlue.rotateAround(FieldConstants.fieldCentre, Rotation2d.k180deg) : poseBlue;
   }
 }

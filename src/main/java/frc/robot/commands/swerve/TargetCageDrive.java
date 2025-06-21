@@ -9,8 +9,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.constants.Constants;
+import frc.robot.constants.FieldConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.util.FieldUtils;
 
 public class TargetCageDrive extends HeadingLockedDrive
 {
@@ -32,7 +32,7 @@ public class TargetCageDrive extends HeadingLockedDrive
   protected void updateTargetHeading() 
   {
     rotationOffset = 
-    MathUtil.isNear(robotXY.getX(), (FieldUtils.fieldLength / 2), Constants.Control.cageFaceDistance) ? 
+    MathUtil.isNear(robotXY.getX(), (FieldConstants.fieldCentre.getX()), Constants.Control.cageFaceDistance) ? 
       Rotation2d.kZero :
       Rotation2d.kCW_90deg;
   }
@@ -46,11 +46,11 @@ public class TargetCageDrive extends HeadingLockedDrive
   @Override
   protected void updateRobotRadius()
   {
-    if (MathUtil.isNear(robotXY.getX(), (FieldUtils.fieldLength / 2), Constants.Control.driveSnappingRange))
-      {robotRadius = FieldUtils.GeoFencing.robotRadiusMinimum;}
-    else if (robotSpeed >= FieldUtils.GeoFencing.robotSpeedThreshold)
-      {robotRadius = FieldUtils.GeoFencing.robotRadiusCircumscribed;}
+    if (MathUtil.isNear(robotXY.getX(), (FieldConstants.fieldCentre.getX()), Constants.Control.driveSnappingRange))
+      {robotRadius = FieldConstants.GeoFencing.robotRadiusMinimum;}
+    else if (robotSpeed >= FieldConstants.GeoFencing.robotSpeedThreshold)
+      {robotRadius = FieldConstants.GeoFencing.robotRadiusCircumscribed;}
     else
-      {robotRadius = FieldUtils.GeoFencing.robotRadiusInscribed;}
+      {robotRadius = FieldConstants.GeoFencing.robotRadiusInscribed;}
   }
 }

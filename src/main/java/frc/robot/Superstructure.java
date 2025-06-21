@@ -20,7 +20,7 @@ import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;
 import frc.robot.util.Telemetry;
-import frc.robot.util.controlTransmutation.InputFunction.JoystickTransmuter;
+import frc.robot.util.controlTransmutation.JoystickTransmuter;
 
 public class Superstructure 
 {
@@ -47,7 +47,6 @@ public class Superstructure
   private final RumbleRequester io_driverLeft    = new RumbleRequester(driver, RumbleType.kLeftRumble, SD.RUMBLE_D_L::put, SD.IO_RUMBLE_D::get);
   private final RumbleRequester io_copilotRight  = new RumbleRequester(copilot, RumbleType.kRightRumble, SD.RUMBLE_C_R::put, SD.IO_RUMBLE_C::get);
   private final RumbleRequester io_copilotLeft   = new RumbleRequester(copilot, RumbleType.kLeftRumble, SD.RUMBLE_C_L::put, SD.IO_RUMBLE_C::get);
-  
   
   public final JoystickTransmuter driverStick = new JoystickTransmuter(() -> -driver.getRawAxis(translationAxis), () -> -driver.getRawAxis(strafeAxis));
   

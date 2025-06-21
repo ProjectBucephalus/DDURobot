@@ -2,6 +2,7 @@ package frc.robot.commands.swerve;
 
 import frc.robot.constants.Constants;
 import frc.robot.constants.Constants.Control;
+import frc.robot.constants.FieldConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.util.FieldUtils;
 import frc.robot.util.GeoFenceObject;
@@ -60,9 +61,9 @@ public abstract class SwerveCommandBase extends Command
     redAlliance = FieldUtils.isRedAlliance();
 
     if (redAlliance)
-      {fieldGeoFence = FieldUtils.GeoFencing.fieldRedGeoFence;}
+      {fieldGeoFence = FieldConstants.GeoFencing.fieldRedGeoFence;}
     else
-      {fieldGeoFence = FieldUtils.GeoFencing.fieldBlueGeoFence;}
+      {fieldGeoFence = FieldConstants.GeoFencing.fieldBlueGeoFence;}
 
     initDriveConstraints();
   }
@@ -114,7 +115,7 @@ public abstract class SwerveCommandBase extends Command
 
         if (SD.IO_OUTER_GEOFENCE.get())
         {
-          Translation2d inputDamping = FieldUtils.GeoFencing.field.dampMotion(swerveState.Pose.getTranslation(), motionXY, robotRadius);
+          Translation2d inputDamping = FieldConstants.GeoFencing.field.dampMotion(swerveState.Pose.getTranslation(), motionXY, robotRadius);
           motionXY = inputDamping;
         }
       } 
@@ -146,9 +147,9 @@ public abstract class SwerveCommandBase extends Command
   /** Adjust the virtual radius of the robot to protect the robot under different conditions */
   protected void updateRobotRadius()
   {
-    if (robotSpeed >= FieldUtils.GeoFencing.robotSpeedThreshold)
-      {robotRadius = FieldUtils.GeoFencing.robotRadiusCircumscribed;}
+    if (robotSpeed >= FieldConstants.GeoFencing.robotSpeedThreshold)
+      {robotRadius = FieldConstants.GeoFencing.robotRadiusCircumscribed;}
     else
-      {robotRadius = FieldUtils.GeoFencing.robotRadiusInscribed;}
+      {robotRadius = FieldConstants.GeoFencing.robotRadiusInscribed;}
   }
 }

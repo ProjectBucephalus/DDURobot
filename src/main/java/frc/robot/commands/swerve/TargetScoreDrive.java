@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.constants.Constants;
+import frc.robot.constants.FieldConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.util.FieldUtils;
 
@@ -36,7 +37,7 @@ public class TargetScoreDrive extends HeadingLockedDrive
   @Override
   protected void applyTranslationDeadband() 
   {
-    if (MathUtil.isNear(robotXY.getX(), (FieldUtils.fieldLength / 2), Constants.Control.driveSnappingRange)) 
+    if (MathUtil.isNear(robotXY.getX(), (FieldConstants.fieldCentre.getX()), Constants.Control.driveSnappingRange)) 
     {
       double translationOut = Math.abs(translationVal) < Math.abs(strafeVal) ? 0 : translationVal;
       double strafeOut = Math.abs(strafeVal) < Math.abs(translationVal) ? 0 : strafeVal;
@@ -52,8 +53,8 @@ public class TargetScoreDrive extends HeadingLockedDrive
   { 
     if 
     (
-      FieldUtils.GeoFencing.reefBlue.getDistance(robotXY) >= FieldUtils.GeoFencing.robotRadiusCircumscribed &&
-      FieldUtils.GeoFencing.reefRed.getDistance(robotXY) >= FieldUtils.GeoFencing.robotRadiusCircumscribed
+      FieldConstants.GeoFencing.reefBlue.getDistance(robotXY) >= FieldConstants.GeoFencing.robotRadiusCircumscribed &&
+      FieldConstants.GeoFencing.reefRed.getDistance(robotXY) >= FieldConstants.GeoFencing.robotRadiusCircumscribed
     )
     {
       nearestReefFace = FieldUtils.getNearestReefFace(robotXY);

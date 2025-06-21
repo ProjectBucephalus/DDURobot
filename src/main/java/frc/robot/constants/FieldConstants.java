@@ -2,22 +2,33 @@ package frc.robot.constants;
 
 import java.util.ArrayList;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.util.FieldUtils;
+import frc.robot.util.GeoFenceObject;
+import frc.robot.util.GeoFenceObject.ObjectTypes;
+import frc.robot.util.controlTransmutation.geoFence.Fence;
+import frc.robot.util.controlTransmutation.geoFence.Line;
 
 public class FieldConstants 
 {
-  public static final ArrayList<Translation2d> blueReefMidpoints = FieldUtils.GeoFencing.reefBlue.getMidPoints();
-  public static final ArrayList<Translation2d> redReefMidpoints = FieldUtils.GeoFencing.reefRed.getMidPoints();
+  /** Length of the field in the X direction, metres */
+  public static final double fieldLength = 17.548;
+  /** Width of the field in the Y direction, metres */
+  public static final double fieldWidth = 8.051;
+
+  public static final Translation2d fieldCentre = new Translation2d(fieldLength / 2, fieldWidth / 2);
+
+  public static final ArrayList<Translation2d> blueReefMidpoints = GeoFencing.reefBlue.getMidPoints();
+  public static final ArrayList<Translation2d> redReefMidpoints = GeoFencing.reefRed.getMidPoints();
   
   private static final double reefFaceOffset = 0.45;
   private static final Translation2d reefSidewaysOffset = new Translation2d(0, 0.15);
 
-  private static final Translation2d reefCentre = new Translation2d(4.489, FieldUtils.fieldWidth / 2);
-  private static final Translation2d r1CentreLineup = reefCentre.minus(new Translation2d(reefFaceOffset + (FieldUtils.GeoFencing.inscribedReefDiameter / 2), 0));
+  private static final Translation2d reefCentre = new Translation2d(4.489, fieldCentre.getY());
+  private static final Translation2d r1CentreLineup = reefCentre.minus(new Translation2d(reefFaceOffset + (GeoFencing.inscribedReefDiameter / 2), 0));
 
   public static final Pose2d raLineup = new Pose2d(r1CentreLineup.plus(reefSidewaysOffset), Rotation2d.kZero);
   public static final Pose2d rbLineup = new Pose2d(r1CentreLineup.minus(reefSidewaysOffset), Rotation2d.kZero);
@@ -78,4 +89,109 @@ public class FieldConstants
   }
 
   public static final double coralStationRange = 0.6;
+
+    public final class GeoFencing
+  {   
+    // Relative to the centre of the robot, in direction the robot is facing
+    // These values are the distance in metres to the virtual wall the robot will stop at
+    // 0 means the wall is running through the middle of the robot
+    // negative distances will have the robot start outside the area, and can only move into it
+    /** Metres the robot can travel left */
+    public static final double fieldNorth = fieldWidth;
+
+    /** Metres the robot can travel right */
+    public static final double fieldSouth = 0;
+
+    /** Metres the robot can travel forwards */
+    public static final double fieldEast = fieldLength;
+
+    /** Metres the robot can travel back */
+    public static final double fieldWest = 0;
+
+    /** Buffer zone for the field walls in metres */
+    public static final double wallBuffer = 0.5;
+    /** Radius for the field walls in metres */
+    public static final double wallRadius = 0.15;
+
+    /** Radius from robot centre in metres where geofence is triggered for slow movements */
+    public static final double robotRadiusInscribed = 0.47;
+    /** Radius from robot centre in metres where geofence is triggered for fast movements */
+    public static final double robotRadiusCircumscribed = 0.7;
+    /** Radius from robot centre in metres where geofence is triggered for closer approaches */
+    public static final double robotRadiusMinimum = 0.25;
+    /** Speed threshold at which the robot changes between radii, in meters per second*/
+    public static final double robotSpeedThreshold = 1.5;
+    
+    /** Inscribed diameter of the reef hexagon (i.e. distance between opposite faces) in metres */
+    public static final double inscribedReefDiameter = 1.663;
+    /** Circumscribed diameter of the reef hexagon (i.e. distance between opposite points) in metres */
+    public static final double circumscribedReefDiameter = 1.720;
+    /** Circumscribed diameter of the reef zone hexagon (i.e. distance between opposite points) in metres */
+    public static final double circumscribedReefZoneDiameter = 3;
+    public static final double penaltyReefZoneDiameter = circumscribedReefZoneDiameter + (robotRadiusInscribed * 2);
+    
+    /** Buffer zone for the reef in metres */
+    public static final double reefBuffer = 0.5;
+
+    /** Buffer zone for the barge zone in metres */
+    public static final double bargeBuffer = 0.5;
+
+    public static final double cornerWidth  = 1.250;
+    public static final double cornerLength = 1.715;
+
+    public static final Fence field = new Fence
+    (
+      fieldWest, 
+      fieldSouth, 
+      fieldEast, 
+      fieldNorth, 
+      wallBuffer,
+      wallRadius
+    );
+
+    public static final GeoFenceObject reefBlue      = new GeoFenceObject(4.489, 4.026, reefBuffer, circumscribedReefDiameter / 2, 0, 6);
+    public static final GeoFenceObject reefZoneBlue  = new GeoFenceObject(4.489, 4.026, reefBuffer, penaltyReefZoneDiameter / 2, 0, 6);
+    public static final GeoFenceObject reefRed       = new GeoFenceObject(13.059, 4.026, reefBuffer, circumscribedReefDiameter / 2, 180, 6);
+    public static final GeoFenceObject reefZoneRed   = new GeoFenceObject(13.059, 4.026, reefBuffer, penaltyReefZoneDiameter / 2, 180, 6);
+    public static final GeoFenceObject bargeColumn   = new GeoFenceObject(8.774, 4.026, 0.25, 0.15);
+    public static final GeoFenceObject bargeZoneBlue = new GeoFenceObject(8.190, 4.331, 9.358, fieldWidth, bargeBuffer, 0.1, ObjectTypes.box);
+    public static final GeoFenceObject bargeZoneRed  = new GeoFenceObject(8.190, 3.721, 9.358, 0, bargeBuffer, 0.1, ObjectTypes.box);
+    public static final Line cornerSBlue   = new Line(fieldWest, fieldSouth + cornerWidth, fieldWest + cornerLength, fieldSouth, wallBuffer);
+    public static final Line cornerNBlue   = new Line(fieldWest, fieldNorth - cornerWidth, fieldWest + cornerLength, fieldNorth, wallBuffer);
+    public static final Line cornerSRed    = new Line(fieldEast, fieldSouth + cornerWidth, fieldEast - cornerLength, fieldSouth, wallBuffer);
+    public static final Line cornerNRed    = new Line(fieldEast, fieldNorth - cornerWidth, fieldEast - cornerLength, fieldNorth, wallBuffer);
+    
+    public static final GeoFenceObject[] fieldBlueGeoFence = 
+    {
+      reefBlue, 
+      reefZoneRed, 
+      bargeColumn, 
+      bargeZoneRed,
+      cornerSBlue, 
+      cornerNBlue
+    };
+
+    public static final GeoFenceObject[] fieldRedGeoFence = 
+    {
+      reefRed, 
+      reefZoneBlue, 
+      bargeColumn, 
+      bargeZoneBlue,
+      cornerSRed, 
+      cornerNRed
+    };
+    
+    public static final Pair<Translation2d, Translation2d> blueAllianceBargeDynamic = new Pair<Translation2d,Translation2d>(new Translation2d(8.19, 3.721), new Translation2d(9.358, 0));
+    public static final Pair<Translation2d, Translation2d> redAllianceBargeDynamic = new Pair<Translation2d,Translation2d>(new Translation2d(8.19, 4.331), new Translation2d(9.358, fieldWidth));
+  }
+
+  public static final class DriverFieldRefs
+  {
+    public static final Translation2d driverBlue1 = new Translation2d(0.0, 5.278);
+    public static final Translation2d driverBlue2 = new Translation2d(0.0, 4.026);
+    public static final Translation2d driverBlue3 = new Translation2d(0.0,2.278);
+    public static final Translation2d driverRed1 = new Translation2d(fieldLength,2.278);
+    public static final Translation2d driverRed2 = new Translation2d(fieldLength,4.026);
+    public static final Translation2d driverRed3 = new Translation2d(fieldLength,5.278);
+  }
 }
