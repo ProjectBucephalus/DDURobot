@@ -78,4 +78,16 @@ public class Conversions
    */
   public static Pose2d buildPose(double x, double y, double rotation)
     {return new Pose2d(x, y, new Rotation2d(Units.degreesToRadians(rotation)));}
+
+  /** Returns true if the wrapped input angles are within the given tollerance */
+  public static boolean isRotationNear(Rotation2d rotationA, Rotation2d rotationB, double degreesTollerance)
+  {
+    double difference = Math.abs(mod(rotationA.getDegrees(), 360) - mod(rotationB.getDegrees(), 360));
+
+    return
+    (
+      difference < 0 + degreesTollerance ||
+      difference > 360 - degreesTollerance
+    );
+  }
 }
