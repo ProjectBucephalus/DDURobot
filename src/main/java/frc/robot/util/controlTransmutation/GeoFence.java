@@ -13,10 +13,17 @@ public abstract class GeoFence extends FieldObject
   @Override
   public Translation2d process(Translation2d controlInput)
   {
-    if (!(checkPosition() || checkAttractors()))
-      {return controlInput;}
+    Translation2d controlOutput;
+    if (checkAttractors())
+    {
+      controlOutput = processAttractors(controlInput);
+      if (!controlOutput.equals(controlInput))
+        {return controlOutput;}
+    }
+    if (checkPosition())
+      {return dampMotion(controlInput);}
     
-    return dampMotion(controlInput);
+    return controlInput;
   }
 
   /**
@@ -35,6 +42,16 @@ public abstract class GeoFence extends FieldObject
     }
 
     return false;
+  }
+
+  /**
+   * Sorts the attractors by distance and returns the output of the closest valid one
+   * @param controlInput Original joystick input, [-1..1],[-1..1]
+   * @return Processed joystick output, [-1..1],[-1..1]
+   */
+  protected Translation2d processAttractors(Translation2d controlInput)
+  {
+    return controlInput;
   }
   
   /**

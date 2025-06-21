@@ -2,6 +2,7 @@ package frc.robot.util.controlTransmutation;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import frc.robot.util.Conversions;
 
 /** Guides the robot towards a point along a given heading */
 public class Attractor extends FieldObject
@@ -14,6 +15,14 @@ public class Attractor extends FieldObject
   protected Translation2d frontCheckpoint;
   /** Point opposite where the approach heading intersects the effect radius */
   protected Translation2d backCheckpoint;
+  /** Minimum angle tollerance, degrees */
+  protected static final double minAngleTollerance = 5;
+  /** Maximum angle tollerance, degrees */
+  protected static final double maxAngleTollerance = 45;
+  /** Scalar for how far to back off from the target when approaching from the side */
+  protected double approachScalar = 0.5;
+  /** By standard implementation, checkPosition is always run first, which calculates this value */
+  private double distance;
 
 
   /**
@@ -35,33 +44,60 @@ public class Attractor extends FieldObject
 
     frontCheckpoint = centre.minus(new Translation2d(buffer, approachHeadingRotation));
     backCheckpoint  = centre.plus(new Translation2d(buffer, approachHeadingRotation));
-
-
   }
 
   @Override
   public Translation2d process(Translation2d controlInput)
   {
-    if (controlInput.equals(Translation2d.kZero) || !checkPosition())
-      {return controlInput;}
-
-    if (centre.getDistance(robotPos) <= buffer)
+    if (!controlInput.equals(Translation2d.kZero) && checkPosition() && checkAngle(controlInput))
     {
-      
+      if (distance <= buffer)
+      {
+        // TODO: set up PID controller here
+        Rotation2d angleToTarget = centre.minus(robotPos).getAngle();
+
+        return new Translation2d(Math.max(distance, controlInput.getNorm()), angleToTarget);
+      }
+      else
+      {
+        Translation2d approachPoint = centre.minus(new Translation2d(distance * approachScalar, approachHeadingRotation));
+        Rotation2d angleToTarget = approachPoint.minus(robotPos).getAngle();
+
+        return new Translation2d(controlInput.getNorm(), angleToTarget);
+      }
     }
-    
 
     return controlInput;
+  }
+
+  /**
+   * Checks if the input heading is towards the target
+   * @param controlInput Current control input
+   * @return True if the attractor should activate
+   */
+  public boolean checkAngle(Translation2d controlInput)
+  {
+    if (distance <= buffer)
+    {
+      return Conversions.isRotationNear(approachHeadingRotation, controlInput.getAngle(), maxAngleTollerance);
+    }
+
+    Rotation2d angleToTarget = centre.minus(robotPos).getAngle();
+    
+    double angleTolerance = Conversions.clamp(Math.atan(buffer/distance), minAngleTollerance, maxAngleTollerance);
+
+    return Conversions.isRotationNear(angleToTarget, controlInput.getAngle(), angleTolerance);
   }
 
   @Override
   public boolean checkPosition()
   {
+    distance = getDistance();
     return
     (
-      centre.getDistance(robotPos) <= buffer ||
+      distance <= buffer ||
       (
-        centre.getDistance(robotPos) <= radius &&
+        distance <= radius &&
         frontCheckpoint.getDistance(robotPos) <= backCheckpoint.getDistance(robotPos)
       )
     );
@@ -70,7 +106,7 @@ public class Attractor extends FieldObject
   @Override
   public double getDistance()
   {
-    return centre.getDistance(robotPos) - (robotRadius);
+    return centre.getDistance(robotPos);
   }
 
 }
