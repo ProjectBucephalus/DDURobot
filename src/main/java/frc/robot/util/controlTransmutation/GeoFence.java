@@ -10,6 +10,7 @@ public abstract class GeoFence extends FieldObject
   // Inherits from FieldObject: T2D centre, double radius, double buffer, double checkRadius
   protected ArrayList<Attractor> attractors;
 
+  @Override
   public Translation2d process(Translation2d controlInput)
   {
     if (!(checkPosition() || checkAttractors()))
@@ -18,6 +19,10 @@ public abstract class GeoFence extends FieldObject
     return dampMotion(controlInput);
   }
 
+  /**
+   * Checks the list of attractors to see if any need further processing
+   * @return True if any attached attractors need further processing
+   */
   protected boolean checkAttractors()
   {
     if (attractors.size() > 0)
@@ -32,11 +37,23 @@ public abstract class GeoFence extends FieldObject
     return false;
   }
   
+  /**
+   * Modifies the input to prevent the robot from entering the object
+   * @param motionXY XY control input, field-relative, [-1..1],[-1..1]
+   * @return XY control output, field-relative, [-1..1],[-1..1]
+   */
   protected Translation2d dampMotion(Translation2d motionXY)
   {
     return motionXY;
   }
 
+  /**
+   * Damps the input motion relative to the given point, such that the normal component is zero when touching the object
+   * @param pointX X-coordinate of the point
+   * @param pointY Y-coordinate of the point
+   * @param motionXY XY control input to be processed
+   * @return Control output with the normal compoenent damped
+   */
   protected Translation2d pointDamping(double pointX, double pointY, Translation2d motionXY)
   {
     // Calculates X and Y distances to the point

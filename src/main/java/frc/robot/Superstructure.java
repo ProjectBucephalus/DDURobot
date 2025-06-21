@@ -60,7 +60,7 @@ public class Superstructure
     SmartDashboard.putData("Field", field);
 
     s_Swerve.registerTelemetry(logger::telemeterize);
-    driverStick.withObjectList(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake);
+    driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake);
     FieldObject.setRobotRadiusSup(this::robotRadiusSup);
     FieldObject.setRobotPosSup(swerveState.Pose::getTranslation);
 

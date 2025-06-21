@@ -7,7 +7,7 @@ package frc.robot.util.controlTransmutation;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.util.Conversions;
 
-/** Add your docs here. */
+/** Sensitivity curve of the input */
 public class InputCurve extends InputTransmuter
 {
   private double power;

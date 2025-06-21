@@ -7,11 +7,16 @@ package frc.robot.util.controlTransmutation;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.constants.Constants;
 
-/** Add your docs here. */
+/** Modified deadband filter that locks the input to cardinal outputs */
 public class CrossDeadband extends Deadband
   {
     protected double overlap;
     
+    /**
+     * Snaps the input to be purely cardinal
+     * @param deadband Size of centre deadband
+     * @param overlap Determines the size and behaviour of corners: <1 deadzone, >1 smooth control, default 1 direct change from X to Y
+     */
     public CrossDeadband()
     {
       this(Constants.Control.stickDeadband, 1);
@@ -20,8 +25,7 @@ public class CrossDeadband extends Deadband
     /**
      * Snaps the input to be purely cardinal
      * @param deadband Size of centre deadband
-     * @param overlap Determines the size and behaviour of corners: <1 deadzone, >1 smooth control 
-     * @return 
+     * @param overlap Determines the size and behaviour of corners: <1 deadzone, >1 smooth control, (default) 1 direct change from X to Y
      */
     public CrossDeadband(double deadband, double overlap)
     {
@@ -29,6 +33,7 @@ public class CrossDeadband extends Deadband
       this.overlap = overlap;
     }
 
+    @Override
     public Translation2d process(Translation2d controlInput)
     {
       if (controlInput.getNorm() <= deadband)
