@@ -67,6 +67,7 @@ public class Superstructure
 
     logger = new Telemetry(Constants.Swerve.maxSpeed);
 
+    setStartPose(FieldUtils.isRedAlliance());
     updateSwerveState();
 
     SmartDashboard.putData("Field", field);
@@ -143,5 +144,13 @@ public class Superstructure
     robotSpeed >= FieldConstants.GeoFencing.robotSpeedThreshold ?
     FieldConstants.GeoFencing.robotRadiusCircumscribed :
     FieldConstants.GeoFencing.robotRadiusInscribed;
+  }
+
+  private void setStartPose(boolean isRedAlliance)
+  {
+    if (isRedAlliance)
+      {s_Swerve.resetPose(FieldConstants.redStartLine);}
+    else
+      {s_Swerve.resetPose(FieldConstants.blueStartLine);}
   }
 }

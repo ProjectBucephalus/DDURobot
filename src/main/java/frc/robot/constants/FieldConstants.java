@@ -16,6 +16,9 @@ public class FieldConstants
   /** Width of the field in the Y direction, metres */
   public static final double fieldWidth = 8.051;
 
+  /** Distance of the start lines from fieldCentre, metres */
+  public static final double startLineOffset = 1.5;
+
   public static final Translation2d fieldCentre = new Translation2d(fieldLength / 2, fieldWidth / 2);
 
   public static final ArrayList<Translation2d> blueReefMidpoints = GeoFencing.reefBlue.getMidPoints();
@@ -26,6 +29,9 @@ public class FieldConstants
 
   private static final Translation2d reefCentre = new Translation2d(4.489, fieldCentre.getY());
   private static final Translation2d r1CentreLineup = reefCentre.minus(new Translation2d(reefFaceOffset + (GeoFencing.inscribedReefDiameter / 2), 0));
+
+  public static final Pose2d redStartLine  = new Pose2d(fieldCentre.plus(new Translation2d(startLineOffset, 0)), Rotation2d.kZero);
+  public static final Pose2d blueStartLine = new Pose2d(fieldCentre.plus(new Translation2d(-startLineOffset, 0)), Rotation2d.k180deg);
 
   public static final Pose2d raLineup = new Pose2d(r1CentreLineup.plus(reefSidewaysOffset), Rotation2d.kZero);
   public static final Pose2d rbLineup = new Pose2d(r1CentreLineup.minus(reefSidewaysOffset), Rotation2d.kZero);
