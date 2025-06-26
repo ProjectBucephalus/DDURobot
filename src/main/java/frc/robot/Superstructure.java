@@ -1,7 +1,12 @@
 package frc.robot;
 
+import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -11,10 +16,12 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.swerve.ManualDrive;
 import frc.robot.constants.Constants;
+import frc.robot.constants.IDConstants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralRoller;
+import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.RumbleRequester;
 import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
@@ -32,10 +39,13 @@ public class Superstructure
   
   private SwerveDriveState swerveState;
   private Field2d field;
+  
+  private static CommandSwerveDrivetrain s_Swerve;
+  private static CoralRoller s_Coral;
+  private static Limelight s_foreLL;
+  private static Limelight s_aftLL;
+  
   private TargetPosition currentTarget;
-
-  private final CommandSwerveDrivetrain s_Swerve;
-  private final CoralRoller s_Coral;
 
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController copilot = new CommandXboxController(1);
@@ -52,15 +62,19 @@ public class Superstructure
     field = new Field2d();
     s_Swerve = TunerConstants.createDrivetrain();
     s_Coral = new CoralRoller();
+    s_foreLL = new Limelight("fore");
+    s_aftLL = new Limelight("aft");
 
     logger = new Telemetry(Constants.Swerve.maxSpeed);
 
+    setStartPose(FieldUtils.isRedAlliance());
     updateSwerveState();
 
     SmartDashboard.putData("Field", field);
 
     s_Swerve.registerTelemetry(logger::telemeterize);
     driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake);
+    FieldConstants.GeoFencing.fieldGeoFence.setInactive();
     FieldObject.setRobotRadiusSup(this::robotRadiusSup);
     FieldObject.setRobotPosSup(swerveState.Pose::getTranslation);
 
@@ -85,7 +99,7 @@ public class Superstructure
       (
         s_Swerve, 
         driverStick::stickOutput,
-        driver::getRightX,
+        () -> -driver.getRightX(),
         driver::getRightTriggerAxis
       )
     );
@@ -112,6 +126,16 @@ public class Superstructure
     return AutoFactories.getCommandList(SD.IO_AUTO.get(), s_Coral, s_Swerve, this::getSwerveState);
   }
 
+  public static void addVisionMeasurement(Pose2d poseMeasurement, double timestamp)
+  {
+    s_Swerve.addVisionMeasurement(poseMeasurement, timestamp);
+  }
+
+  public static void setVisionMeasurementStdDevs(Matrix<N3, N1> visionMeasurementStdDevs)
+  {
+    s_Swerve.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
+  }
+  
   public double robotRadiusSup() 
   {
     double robotSpeed = Math.hypot(swerveState.Speeds.vxMetersPerSecond, swerveState.Speeds.vyMetersPerSecond);
@@ -120,5 +144,13 @@ public class Superstructure
     robotSpeed >= FieldConstants.GeoFencing.robotSpeedThreshold ?
     FieldConstants.GeoFencing.robotRadiusCircumscribed :
     FieldConstants.GeoFencing.robotRadiusInscribed;
+  }
+
+  private void setStartPose(boolean isRedAlliance)
+  {
+    if (isRedAlliance)
+      {s_Swerve.resetPose(FieldConstants.redStartLine);}
+    else
+      {s_Swerve.resetPose(FieldConstants.blueStartLine);}
   }
 }
