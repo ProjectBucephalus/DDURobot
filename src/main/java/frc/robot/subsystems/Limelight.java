@@ -172,7 +172,7 @@ public class Limelight extends SubsystemBase
     
     LimelightHelpers.SetFiducialIDFiltersOverride(limelightName, validIDs);
     
-    if (SD.IO_LL.get())
+    if (SD.IO_LL.get()) //TODO: Replace MT1 references with MT2 when available
     {
       //mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
       mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
