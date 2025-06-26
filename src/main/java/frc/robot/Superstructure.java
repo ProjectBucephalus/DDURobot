@@ -74,7 +74,7 @@ public class Superstructure
 
     s_Swerve.registerTelemetry(logger::telemeterize);
     driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake);
-    FieldConstants.GeoFencing.fieldGeoFence.setInactive();
+    FieldConstants.GeoFencing.fieldGeoFence.setActiveCondition(() -> false);
     FieldObject.setRobotRadiusSup(this::robotRadiusSup);
     FieldObject.setRobotPosSup(swerveState.Pose::getTranslation);
 

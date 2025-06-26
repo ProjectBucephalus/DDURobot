@@ -11,8 +11,6 @@ public class ObjectList extends FieldObject
   private ArrayList<FieldObject> fieldObjects;
   /** Holding value for control processing */
   private Translation2d controlOutput;
-  /** Overide flag to process or ignore this object list */
-  private boolean active;
 
   /**
    * Creates an ObjectList with any number of other field objects to process
@@ -21,7 +19,6 @@ public class ObjectList extends FieldObject
   public ObjectList()
   {
     fieldObjects = new ArrayList<FieldObject>();
-    active = true;
   }
 
   /**
