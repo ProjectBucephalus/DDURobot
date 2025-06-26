@@ -6,6 +6,7 @@ package frc.robot.util.controlTransmutation.geoFence;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -138,5 +139,23 @@ public class Polygon extends GeoFence
 
     midPoints.add(centre);
     return midPoints;
+  }
+
+  /**
+   * Constructs and adds an Attractor on each face of the Polygon
+   * @param normalOffset Distance away from the line along the approach direction, metres
+   * @param tangentOffset Distance away from the line centre, metres right relative to the approach direction
+   * @param effectRadius Distance at which the Attractor becomes active, metres
+   * @param targetBuffer Distance at which the Robot must be moving along the approach direction, metres
+   * @param activeCondition Condition for which the Attractor is active
+   * @return The Polygon object with the new Attractor
+   */
+  public Polygon addRelativeAttractors(double normalOffset, double tangentOffset, double effectRadius, double targetBuffer, BooleanSupplier activeCondition)
+  {
+    for (int i = 0; i < edgeLines.size(); i++)
+    {
+      edgeLines.get(i).addRelativeAttractor(false, normalOffset, tangentOffset, effectRadius, targetBuffer, activeCondition);
+    }
+    return this;
   }
 }
