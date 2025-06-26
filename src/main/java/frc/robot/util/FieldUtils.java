@@ -66,13 +66,13 @@ public class FieldUtils
   {
     if (isRedAlliance())
     {
-      GeoFencing.fieldRedGeoFence.setActive();
-      GeoFencing.fieldBlueGeoFence.setInactive();
+      GeoFencing.fieldRedGeoFence.setActiveCondition(() -> true);
+      GeoFencing.fieldBlueGeoFence.setActiveCondition(() -> false);
     } 
     else
     {
-      GeoFencing.fieldBlueGeoFence.setActive();
-      GeoFencing.fieldRedGeoFence.setInactive();
+      GeoFencing.fieldBlueGeoFence.setActiveCondition(() -> true);
+      GeoFencing.fieldRedGeoFence.setActiveCondition(() -> false);
     }
   }
 

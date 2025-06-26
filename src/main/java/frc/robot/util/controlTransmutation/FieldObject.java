@@ -1,5 +1,6 @@
 package frc.robot.util.controlTransmutation;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -26,6 +27,8 @@ public abstract class FieldObject extends InputTransmuter
   protected double buffer;
   /** Distance at which further processing is required, metres */
   protected double checkRadius;
+  /** Condition for the object to be active, if the return is false the object will return the input */
+  protected BooleanSupplier activeSupplier = () -> true;
 
   /**
    * Global minimum value for object radius, metres </p>
@@ -88,5 +91,16 @@ public abstract class FieldObject extends InputTransmuter
   protected boolean checkPosition()
   {
     return centre.getDistance(robotPos) <= checkRadius + robotRadius;
+  }
+
+  /**
+   * Sets the condition for which the object is active
+   * @param newActiveCondition Any BooleanSupplier, if true the object will be processed
+   * @return The FieldObject with the new active condition
+   */
+  public FieldObject setActiveCondition(BooleanSupplier newActiveCondition)
+  {
+    activeSupplier = newActiveCondition;
+    return this;
   }
 }

@@ -150,14 +150,20 @@ public class FieldConstants
     public static final Polygon reefZoneBlue  = new Polygon(4.489, 4.026, reefBuffer, penaltyReefZoneDiameter / 2, 0, 6);
     public static final Polygon reefRed       = new Polygon(13.059, 4.026, reefBuffer, circumscribedReefDiameter / 2, 180, 6);
     public static final Polygon reefZoneRed   = new Polygon(13.059, 4.026, reefBuffer, penaltyReefZoneDiameter / 2, 180, 6);
-    public static final Point bargeColumn   = new Point(8.774, 4.026, 0.25, 0.15);
-    public static final Box bargeZoneBlue = new Box(8.190, 4.331, 9.358, fieldWidth, bargeBuffer, 0.1);
-    public static final Box bargeZoneRed  = new Box(8.190, 3.721, 9.358, 0, bargeBuffer, 0.1);
-    public static final Line cornerSBlue   = new Line(fieldWest, fieldSouth + cornerWidth, fieldWest + cornerLength, fieldSouth, wallBuffer, wallRadius);
-    public static final Line cornerNBlue   = new Line(fieldWest, fieldNorth - cornerWidth, fieldWest + cornerLength, fieldNorth, wallBuffer, wallRadius);
-    public static final Line cornerSRed    = new Line(fieldEast, fieldSouth + cornerWidth, fieldEast - cornerLength, fieldSouth, wallBuffer, wallRadius);
-    public static final Line cornerNRed    = new Line(fieldEast, fieldNorth - cornerWidth, fieldEast - cornerLength, fieldNorth, wallBuffer, wallRadius);
+    public static final Point   bargeColumn   = new Point(8.774, 4.026, 0.25, 0.15);
+    public static final Box     bargeZoneBlue = new Box(8.190, 4.331, 9.358, fieldWidth, bargeBuffer, 0.1);
+    public static final Box     bargeZoneRed  = new Box(8.190, 3.721, 9.358, 0, bargeBuffer, 0.1);
+    public static final Line    cornerSBlue   = new Line(fieldWest, fieldSouth + cornerWidth, fieldWest + cornerLength, fieldSouth, wallBuffer, wallRadius);
+    public static final Line    cornerNBlue   = new Line(fieldWest, fieldNorth - cornerWidth, fieldWest + cornerLength, fieldNorth, wallBuffer, wallRadius);
+    public static final Line    cornerSRed    = new Line(fieldEast, fieldSouth + cornerWidth, fieldEast - cornerLength, fieldSouth, wallBuffer, wallRadius);
+    public static final Line    cornerNRed    = new Line(fieldEast, fieldNorth - cornerWidth, fieldEast - cornerLength, fieldNorth, wallBuffer, wallRadius);
     
+    // Set up Attractors and Conditions for GeoFence objects
+    static
+    {
+
+    }
+
     public static final ObjectList fieldBlueGeoFence = new ObjectList
     (
       reefBlue, 
@@ -178,6 +184,7 @@ public class FieldConstants
       cornerNRed
     );
 
-    public static final ObjectList fieldGeoFence = new ObjectList(fieldBlueGeoFence, fieldRedGeoFence, field);
+    public static final ObjectList fieldGeoFence = new ObjectList(field, fieldBlueGeoFence, fieldRedGeoFence);
+
   }
 }

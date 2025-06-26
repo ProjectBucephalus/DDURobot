@@ -13,15 +13,18 @@ public abstract class GeoFence extends FieldObject
   @Override
   public Translation2d process(Translation2d controlInput)
   {
-    Translation2d controlOutput;
-    if (checkAttractors())
+    if (activeSupplier.getAsBoolean())
     {
-      controlOutput = processAttractors(controlInput);
-      if (!controlOutput.equals(controlInput))
-        {return controlOutput;}
+      Translation2d controlOutput;
+      if (checkAttractors())
+      {
+        controlOutput = processAttractors(controlInput);
+        if (!controlOutput.equals(controlInput))
+          {return controlOutput;}
+      }
+      if (checkPosition())
+        {return dampMotion(controlInput);}
     }
-    if (checkPosition())
-      {return dampMotion(controlInput);}
     
     return controlInput;
   }
