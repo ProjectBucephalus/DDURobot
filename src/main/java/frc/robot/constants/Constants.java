@@ -41,7 +41,7 @@ public final class Constants
   public static final class Swerve
   {
     /** Centre-centre distance (length and width) between wheels, metres */
-    public static final double drivebaseWidth = 0.616;
+    public static final double drivebaseWidth = 0.485;
     public static final double initialHeading = 0;
 
     /* Drive PID Values */

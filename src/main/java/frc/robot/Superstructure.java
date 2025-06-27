@@ -28,7 +28,9 @@ import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;
 import frc.robot.util.Telemetry;
 import frc.robot.util.controlTransmutation.Brake;
+import frc.robot.util.controlTransmutation.Deadband;
 import frc.robot.util.controlTransmutation.FieldObject;
+import frc.robot.util.controlTransmutation.InputCurve;
 import frc.robot.util.controlTransmutation.JoystickTransmuter;
 
 public class Superstructure 
@@ -56,14 +58,16 @@ public class Superstructure
   
   private final JoystickTransmuter driverStick = new JoystickTransmuter(driver::getLeftY, driver::getLeftX);
   private final Brake driverBrake = new Brake(driver::getRightTriggerAxis, Constants.Control.maxThrottle, Constants.Control.minThrottle);
+  private final InputCurve driverInputCurve = new InputCurve(2);
+  private final Deadband driverDeadband = new Deadband();
 
   public Superstructure()
   {
     field = new Field2d();
     s_Swerve = TunerConstants.createDrivetrain();
     s_Coral = new CoralRoller();
-    s_foreLL = new Limelight("fore");
-    s_aftLL = new Limelight("aft");
+    s_foreLL = new Limelight("limelight-fore");
+    s_aftLL = new Limelight("limelight-aft");
 
     logger = new Telemetry(Constants.Swerve.maxSpeed);
 
@@ -73,7 +77,7 @@ public class Superstructure
     SmartDashboard.putData("Field", field);
 
     s_Swerve.registerTelemetry(logger::telemeterize);
-    driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake);
+    driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake).withInputCurve(driverInputCurve).withDeadband(driverDeadband);
     FieldConstants.GeoFencing.fieldGeoFence.setInactive();
     FieldObject.setRobotRadiusSup(this::robotRadiusSup);
     FieldObject.setRobotPosSup(swerveState.Pose::getTranslation);
