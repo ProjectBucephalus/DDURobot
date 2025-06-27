@@ -47,7 +47,13 @@ public class Restrictor extends FieldObject
   @Override
   public Translation2d process(Translation2d controlInput)
   {
-    if (localSpeedLimit > 0 && checkPosition() && !controlInput.equals(Translation2d.kZero))
+    if 
+    (
+      activeSupplier.getAsBoolean() && 
+      localSpeedLimit > 0 && 
+      checkPosition() && 
+      !controlInput.equals(Translation2d.kZero)
+    )
     {
       double motionNormal = controlInput.getNorm();
       Rotation2d motionAngle = controlInput.getAngle();

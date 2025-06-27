@@ -10,18 +10,35 @@ public abstract class GeoFence extends FieldObject
   // Inherits from FieldObject: T2D centre, double radius, double buffer, double checkRadius
   protected ArrayList<Attractor> attractors = new ArrayList<Attractor>();
 
+  /**
+   * Adds one or more Attractor objects tied to the GeoFence object
+   * @param newAttractors list of Attractors in Field coordinates
+   * @return the GeoFence object with the new Attractors
+   */
+  public GeoFence addAttractors(Attractor ...newAttractors)
+  {
+    for (int i = 0; i < newAttractors.length; i++)
+    {
+      attractors.add(newAttractors[i]);
+    }
+    return this;
+  }
+
   @Override
   public Translation2d process(Translation2d controlInput)
   {
-    Translation2d controlOutput;
-    if (checkAttractors())
+    if (activeSupplier.getAsBoolean())
     {
-      controlOutput = processAttractors(controlInput);
-      if (!controlOutput.equals(controlInput))
-        {return controlOutput;}
+      Translation2d controlOutput;
+      if (checkAttractors())
+      {
+        controlOutput = processAttractors(controlInput);
+        if (!controlOutput.equals(controlInput))
+          {return controlOutput;}
+      }
+      if (checkPosition())
+        {return dampMotion(controlInput);}
     }
-    if (checkPosition())
-      {return dampMotion(controlInput);}
     
     return controlInput;
   }

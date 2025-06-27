@@ -49,7 +49,13 @@ public class Attractor extends FieldObject
   @Override
   public Translation2d process(Translation2d controlInput)
   {
-    if (!controlInput.equals(Translation2d.kZero) && checkPosition() && checkAngle(controlInput))
+    if 
+    (
+      activeSupplier.getAsBoolean() && 
+      !controlInput.equals(Translation2d.kZero) && 
+      checkPosition() && 
+      checkAngle(controlInput)
+    )
     {
       if (distance <= buffer)
       {

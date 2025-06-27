@@ -11,8 +11,6 @@ public class ObjectList extends FieldObject
   private ArrayList<FieldObject> fieldObjects;
   /** Holding value for control processing */
   private Translation2d controlOutput;
-  /** Overide flag to process or ignore this object list */
-  private boolean active;
 
   /**
    * Creates an ObjectList with any number of other field objects to process
@@ -21,7 +19,6 @@ public class ObjectList extends FieldObject
   public ObjectList()
   {
     fieldObjects = new ArrayList<FieldObject>();
-    active = true;
   }
 
   /**
@@ -36,15 +33,15 @@ public class ObjectList extends FieldObject
 
   public Translation2d process(Translation2d controlInput)
   {
-    if (!active || fieldObjects.size() == 0)
-      {return controlInput;}
-    
-    fetchRobotPos();
-    controlOutput = controlInput;
+    if (activeSupplier.getAsBoolean() && fieldObjects.size() > 0)
+    { 
+      fetchRobotPos();
+      controlOutput = controlInput;
 
-    for (int i = fieldObjects.size() - 1; i >= 0; i--)
-    {
-      controlOutput = fieldObjects.get(i).process(controlOutput);
+      for (int i = fieldObjects.size() - 1; i >= 0; i--)
+      {
+        controlOutput = fieldObjects.get(i).process(controlOutput);
+      }
     }
 
     return controlOutput;
@@ -75,12 +72,4 @@ public class ObjectList extends FieldObject
     fieldObjects.add(0, newObject);
     return this;
   }
-
-  /** Enables this object list for processing */
-  public void setActive()
-    {active = true;}
-  
-  /** Disables this object list for processing */
-  public void setInactive()
-    {active = false;}
 }

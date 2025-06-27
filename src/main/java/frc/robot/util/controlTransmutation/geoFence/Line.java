@@ -4,8 +4,12 @@
 
 package frc.robot.util.controlTransmutation.geoFence;
 
+import java.util.function.BooleanSupplier;
+
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.util.Conversions;
+import frc.robot.util.controlTransmutation.Attractor;
 import frc.robot.util.controlTransmutation.GeoFence;
 
 /**
@@ -100,5 +104,33 @@ public class Line extends GeoFence
       {return pointB.getDistance(robotPos);}
     else
       {return ((robotPos.getX() * normY) + (robotPos.getY() * normX) + normXY);}
+  }
+
+  /**
+   * Constructs and adds one or more Attractors, relative to the line
+   * @param antiNormal Reverse the approach direction between normal/antinormal to the line
+   * @param normalOffset Distance away from the line along the approach direction, metres
+   * @param tangentOffset Distance away from the line centre, metres right relative to the approach direction
+   * @param effectRadius Distance at which the Attractor becomes active, metres
+   * @param targetBuffer Distance at which the Robot must be moving along the approach direction, metres
+   * @param activeCondition Condition for which the Attractor is active
+   * @return The Line object with the new Attractor
+   */
+  public Line addRelativeAttractor(boolean antiNormal, double normalOffset, double tangentOffset, double effectRadius, double targetBuffer, BooleanSupplier activeCondition)
+  {
+    Translation2d unitNormal  = pointA.minus(pointB).div(length).rotateBy(antiNormal ? Rotation2d.kCW_90deg : Rotation2d.kCCW_90deg);
+    Translation2d unitTangent = unitNormal.rotateBy(Rotation2d.kCW_90deg);
+    Translation2d attractorCentre = centre.plus(unitNormal.times(normalOffset)).plus(unitTangent.times(tangentOffset));
+    Attractor newAttractor = new Attractor
+      (
+        attractorCentre.getX(),
+        attractorCentre.getY(),
+        unitNormal.getAngle().getDegrees(),
+        effectRadius,
+        targetBuffer
+      );
+    newAttractor.setActiveCondition(activeCondition);
+    addAttractors(newAttractor);
+    return this;
   }
 }
