@@ -1,10 +1,12 @@
 package frc.robot;
 
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -33,7 +35,12 @@ import frc.robot.util.controlTransmutation.JoystickTransmuter;
 
 public class Superstructure 
 {
-  enum TargetPosition {Left, Right, Centre}
+  enum TargetPosition {Left, Right, Centre, None}
+  
+  private boolean rotationKnown = false;
+  private boolean useLimelights = true;
+  private boolean useFence = true;
+  private boolean useRestrictors = true;
   
   private final Telemetry logger;
   
@@ -104,15 +111,52 @@ public class Superstructure
       )
     );
 
-    copilot.leftTrigger().whileTrue(s_Coral.smartRunCommand(SD.IO_CORALSPEED_F.get()));
-    copilot.rightTrigger().whileTrue(s_Coral.smartRunCommand(SD.IO_CORALSPEED_R.get()));
-    copilot.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_F.get()));
-    copilot.rightBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
-    new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
+    driver.leftTrigger().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_F.get()));
+    driver.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
+    // Heading reset
+    driver.start()
+      .onTrue
+      (
+        Commands.runOnce
+        (
+          () -> 
+          {
+            Pigeon2 pigeon = s_Swerve.getPigeon2();
+
+            pigeon.setYaw(FieldUtils.isRedAlliance() ? 0 : 180);
+            s_Swerve.resetPose(new Pose2d(swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(pigeon.getYaw().getValueAsDouble()))));
+            rotationKnown = false;
+            useLimelights = true;
+          }
+        )
+        .ignoringDisable(true)
+        .withName("HeadingReset")
+      );
+    driver.back()
+      .onTrue
+      (
+        Commands.runOnce
+        (
+          () -> 
+          {
+            Pigeon2 pigeon = s_Swerve.getPigeon2();
+
+            pigeon.setYaw(FieldUtils.isRedAlliance() ? 0 : 180);
+            s_Swerve.resetPose(new Pose2d(swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(pigeon.getYaw().getValueAsDouble()))));
+            rotationKnown = false;
+            useLimelights = false;
+          }
+        )
+        .ignoringDisable(true)
+        .withName("DisableNavigation")
+      );
     
     copilot.povLeft().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
     copilot.povRight().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
     copilot.povUp().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
+    copilot.a().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
+    
+    new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
   }
 
   private void bindRumbles()
@@ -153,4 +197,10 @@ public class Superstructure
     else
       {s_Swerve.resetPose(FieldConstants.blueStartLine);}
   }
+
+  public boolean isRotationKnown() {return rotationKnown;}
+  public void setRotationKnown(boolean rotationKnown) {this.rotationKnown = rotationKnown;}
+  public boolean isVisionActive() {return useLimelights;}
+  public boolean isFenceActive() {return useFence;}
+  public boolean isRestrictorsActive() {return useRestrictors;}
 }
