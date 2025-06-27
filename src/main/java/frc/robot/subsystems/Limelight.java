@@ -174,20 +174,20 @@ public class Limelight extends SubsystemBase
     
     if (SD.IO_LL.get()) //TODO: Replace MT1 references with MT2 when available
     {
-      //mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
-      mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
+      mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
+      //mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
       
-      useUpdate = !(mt1 == null || mt1.tagCount == 0 || omegaRps > 2.0);
+      useUpdate = !(mt2 == null || mt2.tagCount == 0 || omegaRps > 2.0);
       
       if (useUpdate) 
       {
-        stdDevFactor = Math.pow(mt1.avgTagDist, 2.0) / mt1.tagCount;
+        stdDevFactor = Math.pow(mt2.avgTagDist, 2.0) / mt2.tagCount;
 
         linearStdDev = Constants.Vision.linearStdDevBaseline * stdDevFactor;
         rotStdDev = Constants.Vision.rotStdDevBaseline * stdDevFactor;
 
         Superstructure.setVisionMeasurementStdDevs(VecBuilder.fill(linearStdDev, linearStdDev, rotStdDev));
-        Superstructure.addVisionMeasurement(mt1.pose, Utils.fpgaToCurrentTime(mt1.timestampSeconds));
+        Superstructure.addVisionMeasurement(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds));
       }
     }
 
