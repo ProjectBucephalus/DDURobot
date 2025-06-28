@@ -92,9 +92,9 @@ public class FieldUtils
   {
     int nearestReefFace;
     ArrayList<Translation2d> localList =
-    isRedAlliance() ? 
-    FieldConstants.redReefMidpoints :
-    FieldConstants.blueReefMidpoints;
+      isRedAlliance() ? 
+      FieldConstants.redReefMidpoints :
+      FieldConstants.blueReefMidpoints;
 
     nearestReefFace = localList.indexOf(robotPos.nearest(localList)); 
 
