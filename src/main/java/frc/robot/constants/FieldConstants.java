@@ -117,9 +117,9 @@ public class FieldConstants
     public static final double wallRadius = 0.15;
 
     /** Radius from robot centre in metres where geofence is triggered for slow movements */
-    public static final double robotRadiusInscribed = 0.47;
+    public static final double robotRadiusInscribed = 0.3;
     /** Radius from robot centre in metres where geofence is triggered for fast movements */
-    public static final double robotRadiusCircumscribed = 0.7;
+    public static final double robotRadiusCircumscribed = 0.6;
     /** Radius from robot centre in metres where geofence is triggered for closer approaches */
     public static final double robotRadiusMinimum = 0.25;
     /** Speed threshold at which the robot changes between radii, in meters per second*/
@@ -152,10 +152,10 @@ public class FieldConstants
       wallRadius
     );
 
-    public static final Polygon reefBlue      = new Polygon(4.489, 4.026, reefBuffer, circumscribedReefDiameter / 2, 0, 6);
-    public static final Polygon reefZoneBlue  = new Polygon(4.489, 4.026, reefBuffer, penaltyReefZoneDiameter / 2, 0, 6);
-    public static final Polygon reefRed       = new Polygon(13.059, 4.026, reefBuffer, circumscribedReefDiameter / 2, 180, 6);
-    public static final Polygon reefZoneRed   = new Polygon(13.059, 4.026, reefBuffer, penaltyReefZoneDiameter / 2, 180, 6);
+    public static final Polygon reefBlue      = new Polygon(4.489, 4.026, circumscribedReefDiameter / 2, reefBuffer, 0, 6);
+    public static final Polygon reefZoneBlue  = new Polygon(4.489, 4.026, penaltyReefZoneDiameter / 2, reefBuffer, 0, 6);
+    public static final Polygon reefRed       = new Polygon(13.059, 4.026, circumscribedReefDiameter / 2, reefBuffer, 180, 6);
+    public static final Polygon reefZoneRed   = new Polygon(13.059, 4.026, penaltyReefZoneDiameter / 2, reefBuffer, 180, 6);
     public static final Point   bargeColumn   = new Point(8.774, 4.026, 0.25, 0.15);
     public static final Box     bargeZoneBlue = new Box(8.190, 4.331, 9.358, fieldWidth, bargeBuffer, 0.1);
     public static final Box     bargeZoneRed  = new Box(8.190, 3.721, 9.358, 0, bargeBuffer, 0.1);
