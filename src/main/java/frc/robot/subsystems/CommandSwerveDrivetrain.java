@@ -300,7 +300,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             )
         )
       );
-    });
+    })
+    .withTimeout(5);
   }
 
   @Override
