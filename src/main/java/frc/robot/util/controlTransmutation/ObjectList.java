@@ -42,9 +42,9 @@ public class ObjectList extends FieldObject
       {
         controlOutput = fieldObjects.get(i).process(controlOutput);
       }
+      return controlOutput;
     }
-
-    return controlOutput;
+    return controlInput;
   }
 
   /**
