@@ -47,7 +47,7 @@ public abstract class GeoFence extends FieldObject
    * Checks the list of attractors to see if any need further processing
    * @return True if any attached attractors need further processing
    */
-  protected boolean checkAttractors()
+  public boolean checkAttractors()
   {
     if (attractors.size() > 0)
     {
@@ -66,9 +66,21 @@ public abstract class GeoFence extends FieldObject
    * @param controlInput Original joystick input, [-1..1],[-1..1]
    * @return Processed joystick output, [-1..1],[-1..1]
    */
-  protected Translation2d processAttractors(Translation2d controlInput)
+  public Translation2d processAttractors(Translation2d controlInput)
   {
-    return controlInput;
+    double distance = 100;
+    int index = 0;
+
+    for (int i = 0; i < attractors.size(); i++)
+      {
+        if (attractors.get(i).checkAngle(controlInput) && attractors.get(i).getDistance() < distance)
+        {
+          distance = attractors.get(i).getDistance();
+          index = i;
+        }
+      }
+
+    return attractors.get(index).process(controlInput);
   }
   
   /**

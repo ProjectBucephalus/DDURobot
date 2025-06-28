@@ -123,13 +123,13 @@ public class Line extends GeoFence
   public Line addRelativeAttractor(boolean antiNormal, double normalOffset, double tangentOffset, double effectRadius, double targetBuffer, BooleanSupplier activeCondition)
   {
     Translation2d unitNormal  = pointA.minus(pointB).div(length).rotateBy(antiNormal ? Rotation2d.kCW_90deg : Rotation2d.kCCW_90deg);
-    Translation2d unitTangent = unitNormal.rotateBy(Rotation2d.kCW_90deg);
+    Translation2d unitTangent = unitNormal.rotateBy(Rotation2d.kCCW_90deg);
     Translation2d attractorCentre = centre.plus(unitNormal.times(normalOffset)).plus(unitTangent.times(tangentOffset));
     Attractor newAttractor = new Attractor
       (
         attractorCentre.getX(),
         attractorCentre.getY(),
-        unitNormal.getAngle().getDegrees(),
+        unitNormal.getAngle().getDegrees() + 180,
         effectRadius,
         targetBuffer
       );

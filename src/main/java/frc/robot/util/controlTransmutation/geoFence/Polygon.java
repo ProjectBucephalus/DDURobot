@@ -105,6 +105,25 @@ public class Polygon extends GeoFence
     return nearestLine().getDirectionalDistance();
   }
 
+  @Override
+  public boolean checkAttractors() 
+  {
+    return nearestLine().checkAttractors();
+  }
+
+  @Override
+  public Translation2d processAttractors(Translation2d controlInput) 
+  {
+    int nearestIndex = nearestLineIndex();
+    Translation2d controlOutput = edgeLines.get(nearestIndex).processAttractors(controlInput);
+    if (!controlOutput.equals(controlInput)) {return controlOutput;}
+    controlOutput = edgeLines.get(Conversions.wrap(nearestIndex - 1, 0, edgeLines.size() - 1)).processAttractors(controlInput);
+    if (!controlOutput.equals(controlInput)) {return controlOutput;}
+    controlOutput = edgeLines.get(Conversions.wrap(nearestIndex + 1, 0, edgeLines.size() - 1)).processAttractors(controlInput);
+    if (!controlOutput.equals(controlInput)) {return controlOutput;}
+    return controlInput;
+  }
+
   private Line nearestLine()
   {
     int index = 0;
@@ -122,6 +141,25 @@ public class Polygon extends GeoFence
     }
 
     return edgeLines.get(index);
+  }
+
+  private int nearestLineIndex()
+  {
+    int index = 0;
+    double minDistance = edgeLines.get(0).getCentre().getDistance(robotPos);
+    double checkDistance;
+
+    for (int i = 1; i < edgeLines.size(); i++)
+    {
+      checkDistance = edgeLines.get(i).getCentre().getDistance(robotPos);
+      if (checkDistance < minDistance)
+      {
+        index = i;
+        minDistance = checkDistance;
+      }
+    }
+
+    return index;
   }
 
   /**

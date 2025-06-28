@@ -35,13 +35,10 @@ public class TargetScoreDrive extends HeadingLockedDrive
   @Override
   protected void updateTargetHeading()
   { 
-    if (MathUtil.isNear(robotXY.getX(), (FieldConstants.fieldCentre.getX()), Constants.Control.driveSnappingRange)) 
-      {motionXY = crossDeadband.process(motionXY);}
-
     if 
     (
-      FieldConstants.GeoFencing.reefBlue.getDistance() >= FieldConstants.GeoFencing.robotRadiusCircumscribed &&
-      FieldConstants.GeoFencing.reefRed.getDistance() >= FieldConstants.GeoFencing.robotRadiusCircumscribed
+      FieldConstants.GeoFencing.reefBlue.getDistance() >= FieldConstants.GeoFencing.robotRadiusCircumscribed/2 &&
+      FieldConstants.GeoFencing.reefRed.getDistance() >= FieldConstants.GeoFencing.robotRadiusCircumscribed/2
     )
     {
       nearestReefFace = FieldUtils.getNearestReefFace(robotXY);

@@ -6,6 +6,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import frc.robot.Superstructure;
+import frc.robot.Superstructure.DriveState;
+import frc.robot.Superstructure.TargetPosition;
 import frc.robot.util.controlTransmutation.Attractor;
 import frc.robot.util.controlTransmutation.ObjectList;
 import frc.robot.util.controlTransmutation.geoFence.*;
@@ -169,7 +172,28 @@ public class FieldConstants
     // Set up Attractors and Conditions for GeoFence objects
     static
     {
-      reefRed.addRelativeAttractors(0.5, 0, 1.5, 0.5, () -> true);
+      reefRed.addRelativeAttractors(0.4, -0.2, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Reef));
+      reefRed.addRelativeAttractors(0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Reef));
+      reefRed.addRelativeAttractors(0.4, 0.2, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Reef));
+      reefBlue.addRelativeAttractors(0.4, -0.2, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Reef));
+      reefBlue.addRelativeAttractors(0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Reef));
+      reefBlue.addRelativeAttractors(0.4, 0.2, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Reef));
+
+      cornerSBlue.addRelativeAttractor(true, 0.4, 0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Station));
+      cornerSBlue.addRelativeAttractor(true, 0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Station));
+      cornerSBlue.addRelativeAttractor(true, 0.4, -0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Station));
+      
+      cornerNBlue.addRelativeAttractor(false, 0.4, 0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Station));
+      cornerNBlue.addRelativeAttractor(false, 0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Station));
+      cornerNBlue.addRelativeAttractor(false, 0.4, -0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Station));
+      
+      cornerSRed.addRelativeAttractor(false, 0.4, 0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Station));
+      cornerSRed.addRelativeAttractor(false, 0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Station));
+      cornerSRed.addRelativeAttractor(false, 0.4, -0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Station));
+      
+      cornerNRed.addRelativeAttractor(true, 0.4, 0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Station));
+      cornerNRed.addRelativeAttractor(true, 0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Station));
+      cornerNRed.addRelativeAttractor(true, 0.4, -0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Station));
     }
 
     public static final ObjectList fieldBlueGeoFence = new ObjectList

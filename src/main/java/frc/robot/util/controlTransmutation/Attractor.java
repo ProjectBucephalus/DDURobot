@@ -16,11 +16,13 @@ public class Attractor extends FieldObject
   /** Point opposite where the approach heading intersects the effect radius */
   protected Translation2d backCheckpoint;
   /** Minimum angle tollerance, degrees */
-  protected static final double minAngleTollerance = 10;
+  protected static final double minAngleTollerance = 20;
   /** Maximum angle tollerance, degrees */
-  protected static final double maxAngleTollerance = 45;
+  protected static final double maxAngleTollerance = 60;
   /** Scalar for how far to back off from the target when approaching from the side */
-  protected double approachScalar = 0.5;
+  protected double approachScalar = 0.1;
+  /** Input scale for approaching within the buffer based on distance */
+  protected double leadInScalar = 1;
   /** By standard implementation, checkPosition is always run first, which calculates this value */
   private double distance;
 
@@ -66,7 +68,7 @@ public class Attractor extends FieldObject
         // TODO: set up PID controller here
         Rotation2d angleToTarget = centre.minus(robotPos).getAngle();
 
-        return new Translation2d(Math.min(distance * 0.5, controlInput.getNorm()), angleToTarget);
+        return new Translation2d(Math.min(distance * leadInScalar, controlInput.getNorm()), angleToTarget);
       }
       else
       {
@@ -105,7 +107,7 @@ public class Attractor extends FieldObject
 
     Rotation2d angleToTarget = centre.minus(robotPos).getAngle();
     
-    double angleTolerance = Conversions.clamp(Math.atan(buffer/distance), minAngleTollerance, maxAngleTollerance);
+    double angleTolerance = Conversions.clamp(2*Math.atan(buffer/distance), minAngleTollerance, maxAngleTollerance);
 
     return Conversions.isRotationNear(angleToTarget, controlInput.getAngle(), angleTolerance);
   }

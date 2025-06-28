@@ -43,8 +43,8 @@ import frc.robot.util.controlTransmutation.JoystickTransmuter;
 
 public class Superstructure 
 {
-  enum TargetPosition {Left, Right, Centre, None}
-  enum DriveState {Reef, Station, Barge, None}
+  public enum TargetPosition {Left, Right, Centre, None}
+  public enum DriveState {Reef, Station, Barge, None}
   
   private static boolean rotationKnown = false;
   private static boolean useLimelights = true;
@@ -62,8 +62,8 @@ public class Superstructure
   private static Limelight s_foreLL;
   private static Limelight s_aftLL;
   
-  private TargetPosition currentTarget;
-  private DriveState currentDriveState;
+  private static TargetPosition currentTarget;
+  private static DriveState currentDriveState;
 
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController copilot = new CommandXboxController(1);
@@ -224,9 +224,9 @@ public class Superstructure
         .withName("DisableNavigation")
       );
     
-    copilot.povLeft().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
-    copilot.povRight().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
-    copilot.povUp().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
+    copilot.x().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
+    copilot.b().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
+    copilot.y().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
     copilot.a().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
 
     driver.x().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Reef));
@@ -286,4 +286,6 @@ public class Superstructure
   public static boolean getAlliance() {return redAlliance = FieldUtils.isRedAlliance();}
   public static void    setYaw(double newYaw) {s_Swerve.getPigeon2().setYaw(newYaw);}
   public static double  getYaw() {return s_Swerve.getPigeon2().getYaw().getValueAsDouble();}
+  public static boolean checkTargetPosition(TargetPosition testTargetPosition) {return testTargetPosition == currentTarget;}
+  public static boolean checkDriveState(DriveState testDriveState) {return testDriveState == currentDriveState;}
 }
