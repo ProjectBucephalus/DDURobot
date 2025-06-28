@@ -53,7 +53,7 @@ public class AutoFactories
           Rotation2d rotationTarget = 
           splitCommand.contains(";") ? 
           new Rotation2d(Units.degreesToRadians(Double.parseDouble(splitCommand.substring(splitCommand.indexOf(";"))))) : 
-          swerveStateSup.get().Pose.getRotation();
+          swerveStateSup.get().Pose.getRotation().plus(Rotation2d.k180deg);
           
           commandList.add(s_Swerve.poseLockDriveCommand(new AlliancePose2dSup(posTarget, rotationTarget), swerveStateSup));
           break;
