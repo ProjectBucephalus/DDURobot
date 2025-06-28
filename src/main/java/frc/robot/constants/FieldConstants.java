@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import frc.robot.util.controlTransmutation.Attractor;
 import frc.robot.util.controlTransmutation.ObjectList;
 import frc.robot.util.controlTransmutation.geoFence.*;
 
@@ -114,21 +115,21 @@ public class FieldConstants
     /** Buffer zone for the field walls in metres */
     public static final double wallBuffer = 0.5;
     /** Radius for the field walls in metres */
-    public static final double wallRadius = 0.15;
+    public static final double wallRadius = 0.05;
 
     /** Radius from robot centre in metres where geofence is triggered for slow movements */
-    public static final double robotRadiusInscribed = 0.3;
+    public static final double robotRadiusInscribed = 0.35;
     /** Radius from robot centre in metres where geofence is triggered for fast movements */
-    public static final double robotRadiusCircumscribed = 0.6;
+    public static final double robotRadiusCircumscribed = 0.5;
     /** Radius from robot centre in metres where geofence is triggered for closer approaches */
     public static final double robotRadiusMinimum = 0.25;
     /** Speed threshold at which the robot changes between radii, in meters per second*/
     public static final double robotSpeedThreshold = 1.5;
     
     /** Inscribed diameter of the reef hexagon (i.e. distance between opposite faces) in metres */
-    public static final double inscribedReefDiameter = 1.663;
+    public static final double inscribedReefDiameter = 1.600;
     /** Circumscribed diameter of the reef hexagon (i.e. distance between opposite points) in metres */
-    public static final double circumscribedReefDiameter = 1.720;
+    public static final double circumscribedReefDiameter = 1.640;
     /** Circumscribed diameter of the reef zone hexagon (i.e. distance between opposite points) in metres */
     public static final double circumscribedReefZoneDiameter = 3;
     public static final double penaltyReefZoneDiameter = circumscribedReefZoneDiameter + (robotRadiusInscribed * 2);
@@ -139,8 +140,8 @@ public class FieldConstants
     /** Buffer zone for the barge zone in metres */
     public static final double bargeBuffer = 0.5;
 
-    public static final double cornerWidth  = 1.250;
-    public static final double cornerLength = 1.715;
+    public static final double cornerWidth  = 1.200;
+    public static final double cornerLength = 1.700;
 
     public static final Fence field = new Fence
     (
@@ -148,8 +149,8 @@ public class FieldConstants
       fieldSouth, 
       fieldEast, 
       fieldNorth, 
-      wallBuffer,
-      wallRadius
+      wallRadius,
+      wallBuffer
     );
 
     public static final Polygon reefBlue      = new Polygon(4.489, 4.026, circumscribedReefDiameter / 2, reefBuffer, 0, 6);
@@ -157,17 +158,18 @@ public class FieldConstants
     public static final Polygon reefRed       = new Polygon(13.059, 4.026, circumscribedReefDiameter / 2, reefBuffer, 180, 6);
     public static final Polygon reefZoneRed   = new Polygon(13.059, 4.026, penaltyReefZoneDiameter / 2, reefBuffer, 180, 6);
     public static final Point   bargeColumn   = new Point(8.774, 4.026, 0.25, 0.15);
-    public static final Box     bargeZoneBlue = new Box(8.190, 4.331, 9.358, fieldWidth, bargeBuffer, 0.1);
-    public static final Box     bargeZoneRed  = new Box(8.190, 3.721, 9.358, 0, bargeBuffer, 0.1);
-    public static final Line    cornerSBlue   = new Line(fieldWest, fieldSouth + cornerWidth, fieldWest + cornerLength, fieldSouth, wallBuffer, wallRadius);
-    public static final Line    cornerNBlue   = new Line(fieldWest, fieldNorth - cornerWidth, fieldWest + cornerLength, fieldNorth, wallBuffer, wallRadius);
-    public static final Line    cornerSRed    = new Line(fieldEast, fieldSouth + cornerWidth, fieldEast - cornerLength, fieldSouth, wallBuffer, wallRadius);
-    public static final Line    cornerNRed    = new Line(fieldEast, fieldNorth - cornerWidth, fieldEast - cornerLength, fieldNorth, wallBuffer, wallRadius);
-    
+    public static final Box     bargeZoneBlue = new Box(8.190, 4.331, 9.358, fieldWidth, 0.1, bargeBuffer);
+    public static final Box     bargeZoneRed  = new Box(8.190, 3.721, 9.358, 0, 0.1, bargeBuffer);
+    public static final Line    cornerSBlue   = new Line(fieldWest, fieldSouth + cornerWidth, fieldWest + cornerLength, fieldSouth, wallRadius, wallBuffer);
+    public static final Line    cornerNBlue   = new Line(fieldWest, fieldNorth - cornerWidth, fieldWest + cornerLength, fieldNorth, wallRadius, wallBuffer);
+    public static final Line    cornerSRed    = new Line(fieldEast, fieldSouth + cornerWidth, fieldEast - cornerLength, fieldSouth, wallRadius, wallBuffer);
+    public static final Line    cornerNRed    = new Line(fieldEast, fieldNorth - cornerWidth, fieldEast - cornerLength, fieldNorth, wallRadius, wallBuffer);
+    public static final Attractor testAttractor = new Attractor(2, 2, 0, 2, 0.5);
+
     // Set up Attractors and Conditions for GeoFence objects
     static
     {
-
+      
     }
 
     public static final ObjectList fieldBlueGeoFence = new ObjectList
@@ -190,7 +192,7 @@ public class FieldConstants
       cornerNRed
     );
 
-    public static final ObjectList fieldGeoFence = new ObjectList(field, fieldBlueGeoFence, fieldRedGeoFence);
+    public static final ObjectList fieldGeoFence = new ObjectList(field, fieldBlueGeoFence, fieldRedGeoFence, testAttractor);
 
   }
 }

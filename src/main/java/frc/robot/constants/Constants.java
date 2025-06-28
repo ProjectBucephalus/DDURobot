@@ -45,7 +45,7 @@ public final class Constants
     public static final double initialHeading = 0;
 
     /* Drive PID Values */
-    public static final double driveKP = 5.4;
+    public static final double driveKP = 2.4;
     public static final double driveKI = 0.0;
     public static final double driveKD = 0.0;
 
@@ -68,8 +68,8 @@ public final class Constants
 
   public static final class Coral
   {
-    public static final double forwardSpeed = -0.5;
-    public static final double reverseSpeed = 0.5;
+    public static final double forwardSpeed = -0.15;
+    public static final double reverseSpeed = 0.15;
   }
 
   public static final class Algae

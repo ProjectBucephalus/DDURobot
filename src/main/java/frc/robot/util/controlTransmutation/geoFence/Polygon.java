@@ -132,7 +132,7 @@ public class Polygon extends GeoFence
   {
     ArrayList<Translation2d> midPoints = new ArrayList<Translation2d>();
 
-    for (int i = 1; i < edgeLines.size(); i++)
+    for (int i = 0; i < edgeLines.size(); i++)
     {
       midPoints.add(edgeLines.get(i).getCentre());
     }
