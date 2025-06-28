@@ -16,10 +16,11 @@ public class TargetCageDrive extends HeadingLockedDrive
     CommandSwerveDrivetrain s_Swerve, 
     Supplier<Translation2d> joystickSupplier,
     Rotation2d targetHeading, 
-    Rotation2d rotationOffset
+    Rotation2d rotationOffset,
+    Supplier<Translation2d> robotPosSup
   ) 
   {
-    super(s_Swerve, joystickSupplier, targetHeading, rotationOffset);
+    super(s_Swerve, joystickSupplier, targetHeading, rotationOffset, robotPosSup);
   }
 
   @Override

@@ -7,6 +7,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import frc.robot.Superstructure;
 import frc.robot.constants.Constants.Swerve;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.util.SD;
@@ -21,6 +22,8 @@ public class HeadingLockedDrive extends SwerveCommandBase
   protected double rotationKI;
   protected double rotationKD;
 
+  protected Supplier<Translation2d> robotPosSup;
+
   protected final SwerveRequest.FieldCentricFacingAngle driveRequest = new SwerveRequest
     .FieldCentricFacingAngle()
     .withDriveRequestType(com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType.OpenLoopVoltage)
@@ -32,7 +35,8 @@ public class HeadingLockedDrive extends SwerveCommandBase
     CommandSwerveDrivetrain s_Swerve,  
     Supplier<Translation2d> joystickSupplier,
     Rotation2d targetHeading, 
-    Rotation2d rotationOffset
+    Rotation2d rotationOffset,
+    Supplier<Translation2d> robotPosSup
   ) 
   {
     super(s_Swerve, joystickSupplier);
@@ -45,12 +49,14 @@ public class HeadingLockedDrive extends SwerveCommandBase
 
     this.targetHeading = targetHeading;
     this.rotationOffset = rotationOffset;
+    this.robotPosSup = robotPosSup;
   }
 
   @Override
   public void execute()
   {
     motionXY = joystickSupplier.get();
+    robotXY = robotPosSup.get();
 
     updateTargetHeading();
     updateRotationPID();

@@ -11,13 +11,18 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.swerve.HeadingLockedDrive;
 import frc.robot.commands.swerve.ManualDrive;
+import frc.robot.commands.swerve.TargetCageDrive;
+import frc.robot.commands.swerve.TargetScoreDrive;
+import frc.robot.commands.swerve.TargetStationDrive;
 import frc.robot.constants.Constants;
 import frc.robot.constants.IDConstants;
 import frc.robot.constants.FieldConstants;
@@ -39,6 +44,7 @@ import frc.robot.util.controlTransmutation.JoystickTransmuter;
 public class Superstructure 
 {
   enum TargetPosition {Left, Right, Centre, None}
+  enum DriveState {Reef, Station, Barge, None}
   
   private static boolean rotationKnown = false;
   private static boolean useLimelights = true;
@@ -57,6 +63,7 @@ public class Superstructure
   private static Limelight s_aftLL;
   
   private TargetPosition currentTarget;
+  private DriveState currentDriveState;
 
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController copilot = new CommandXboxController(1);
@@ -113,6 +120,7 @@ public class Superstructure
 
   private void bindControls()
   {
+    currentDriveState = DriveState.None;
     s_Swerve.setDefaultCommand
     (
       new ManualDrive
@@ -123,6 +131,56 @@ public class Superstructure
         driver::getRightTriggerAxis
       )
     );
+
+    new Trigger(() -> {return currentDriveState == DriveState.None;})
+      .whileTrue
+      (
+        new ManualDrive
+        (
+          s_Swerve, 
+          driverStick::stickOutput,
+          () -> -driver.getRightX(),
+          driver::getRightTriggerAxis
+        )
+      );
+
+    new Trigger(() -> {return currentDriveState == DriveState.Reef;})
+      .whileTrue
+      (
+        new TargetScoreDrive
+        (
+          s_Swerve, 
+          driverStick::stickOutput,
+          Rotation2d.kZero,
+          () -> getPosition()
+        )
+      );
+
+    new Trigger(() -> {return currentDriveState == DriveState.Station;})
+      .whileTrue
+      (
+        new TargetStationDrive
+        (
+          s_Swerve, 
+          driverStick::stickOutput,
+          Rotation2d.kZero,
+          () -> getPosition()
+        )
+      );
+    
+    new Trigger(() -> {return currentDriveState == DriveState.Barge;})
+      .whileTrue
+      (
+        new HeadingLockedDrive
+        (
+          s_Swerve, 
+          driverStick::stickOutput,
+          Rotation2d.kZero,
+          Rotation2d.kZero,
+          () -> getPosition()
+        )
+      );
+    
 
     driver.leftTrigger().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_F.get()));
     driver.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
@@ -170,6 +228,12 @@ public class Superstructure
     copilot.povRight().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
     copilot.povUp().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
     copilot.a().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
+
+    driver.x().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Reef));
+    driver.a().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Station));
+    driver.y().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Barge));
+    driver.b().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
+    driver.axisMagnitudeGreaterThan(Axis.kRightX.value, 0.2).onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
     
     new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
   }

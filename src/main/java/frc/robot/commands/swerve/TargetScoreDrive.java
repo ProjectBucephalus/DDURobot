@@ -24,10 +24,11 @@ public class TargetScoreDrive extends HeadingLockedDrive
   (
     CommandSwerveDrivetrain s_Swerve, 
     Supplier<Translation2d> joystickSupplier,
-    Rotation2d rotationOffset
+    Rotation2d rotationOffset,
+    Supplier<Translation2d> robotPosSup
   ) 
   {
-    super(s_Swerve, joystickSupplier, Rotation2d.kZero, rotationOffset);
+    super(s_Swerve, joystickSupplier, Rotation2d.kZero, rotationOffset, robotPosSup);
     this.rotationOffsetBase = rotationOffset;
   }
 
@@ -63,18 +64,18 @@ public class TargetScoreDrive extends HeadingLockedDrive
           break;
 
         case 4:
-          targetHeading = Rotation2d.kZero;
+          targetHeading = Rotation2d.k180deg;
           super.rotationOffset = this.rotationOffsetBase.unaryMinus();
           break;
 
         case 5:
           targetHeading = new Rotation2d(Units.degreesToRadians(-120));
-          super.rotationOffset = this.rotationOffsetBase;
+          super.rotationOffset = this.rotationOffsetBase.unaryMinus();
           break;
 
         case 6:
           targetHeading = new Rotation2d(Units.degreesToRadians(-60));
-          super.rotationOffset = this.rotationOffsetBase;
+          super.rotationOffset = this.rotationOffsetBase.unaryMinus();
           break;
           
         default:
