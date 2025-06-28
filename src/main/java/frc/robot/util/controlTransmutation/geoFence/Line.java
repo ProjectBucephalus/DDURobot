@@ -50,7 +50,7 @@ public class Line extends GeoFence
     
     dotX = normX / length;
     dotY = normY / length;
-    dotXY = Xa*dXab + Ya*dYab;
+    dotXY = Xa*dotX + Ya*dotY;
 
     checkRadius = (Math.sqrt(length)/2) + radius + buffer;
   }
@@ -97,13 +97,17 @@ public class Line extends GeoFence
   /** If the robot position is within the projection area of the line, the output will be negative on one side of the line */
   public double getDirectionalDistance()
   {
-    double dot = (robotPos.getX() * dotX) + (robotPos.getY() * dotY) - dotXY;
-    if (dot <= 0)
-      {return pointA.getDistance(robotPos);}
-    else if (dot >= 1)
-      {return pointB.getDistance(robotPos);}
-    else
-      {return ((robotPos.getX() * normY) + (robotPos.getY() * normX) + normXY);}
+    //double dot = (robotPos.getX() * dotX) + (robotPos.getY() * dotY) - dotXY;
+    //
+    //SmartDashboard.putNumber("Dot Product", dot);
+    //SmartDashboard.putNumber("Distance", ((robotPos.getX() * normY) - (robotPos.getY() * normX) - normXY));
+    //
+    //if (dot <= 0)
+    //  {return pointA.getDistance(robotPos) - (radius + robotRadius);}
+    //else if (dot >= 1)
+    //  {return pointB.getDistance(robotPos) - (radius + robotRadius);}
+    //else
+      {return ((robotPos.getX() * normY) - (robotPos.getY() * normX) - normXY) - (radius + robotRadius);}
   }
 
   /**

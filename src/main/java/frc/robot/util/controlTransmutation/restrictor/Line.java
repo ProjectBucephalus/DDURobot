@@ -41,7 +41,7 @@ public class Line extends Restrictor
 
     dotX = normX / length;
     dotY = normY / length;
-    dotXY = pointA.getX()*dXab + pointA.getY()*dYab;
+    dotXY = pointA.getX()*dotX + pointA.getY()*dotY;
   }
 
   public double getDistance()
@@ -63,6 +63,6 @@ public class Line extends Restrictor
     else if (dot >= 1)
       {return pointB.getDistance(robotPos);}
     else
-      {return ((robotPos.getX() * normY) + (robotPos.getY() * normX) + normXY);}
+      {return ((robotPos.getX() * normY) + (robotPos.getY() * normX) - normXY);}
   }
 }
