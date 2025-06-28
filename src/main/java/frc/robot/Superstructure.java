@@ -7,6 +7,7 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -43,6 +44,7 @@ public class Superstructure
   private boolean useLimelights = true;
   private boolean useFence = true;
   private boolean useRestrictors = true;
+  private boolean redAlliance;
   
   private final Telemetry logger;
   
@@ -63,7 +65,7 @@ public class Superstructure
   private final RumbleRequester io_copilotRight  = new RumbleRequester(copilot, RumbleType.kRightRumble, SD.RUMBLE_C_R::put, SD.IO_RUMBLE_C::get);
   private final RumbleRequester io_copilotLeft   = new RumbleRequester(copilot, RumbleType.kLeftRumble, SD.RUMBLE_C_L::put, SD.IO_RUMBLE_C::get);
   
-  private final JoystickTransmuter driverStick = new JoystickTransmuter(driver::getLeftY, driver::getLeftX);
+  private final JoystickTransmuter driverStick = new JoystickTransmuter(driver::getLeftY, driver::getLeftX).invertX().invertY();
   private final Brake driverBrake = new Brake(driver::getRightTriggerAxis, Constants.Control.maxThrottle, Constants.Control.minThrottle);
   private final InputCurve driverInputCurve = new InputCurve(2);
   private final Deadband driverDeadband = new Deadband();
@@ -78,16 +80,18 @@ public class Superstructure
 
     logger = new Telemetry(Constants.Swerve.maxSpeed);
 
-    setStartPose(FieldUtils.isRedAlliance());
+    setStartPose(getAlliance());
     updateSwerveState();
+    driverStick.rotated(redAlliance);
+    FieldUtils.activateAllianceFencing();
 
     SmartDashboard.putData("Field", field);
 
     s_Swerve.registerTelemetry(logger::telemeterize);
     driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake).withInputCurve(driverInputCurve).withDeadband(driverDeadband);
-    FieldConstants.GeoFencing.fieldGeoFence.setActiveCondition(() -> false);
+    FieldConstants.GeoFencing.fieldGeoFence.setActiveCondition(() -> useFence);
     FieldObject.setRobotRadiusSup(this::robotRadiusSup);
-    FieldObject.setRobotPosSup(swerveState.Pose::getTranslation);
+    FieldObject.setRobotPosSup(() -> getPosition());
 
     bindControls();
     bindRumbles();
@@ -100,6 +104,11 @@ public class Superstructure
   {
     swerveState = s_Swerve.getState();
     field.setRobotPose(swerveState.Pose);
+  }
+
+  public Translation2d getPosition()
+  {
+    return swerveState.Pose.getTranslation();
   }
 
   private void bindControls()
@@ -207,4 +216,6 @@ public class Superstructure
   public boolean isVisionActive() {return useLimelights;}
   public boolean isFenceActive() {return useFence;}
   public boolean isRestrictorsActive() {return useRestrictors;}
+  public boolean isRedAlliance() {return redAlliance;}
+  public boolean getAlliance() {return redAlliance = FieldUtils.isRedAlliance();}
 }

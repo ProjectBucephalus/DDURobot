@@ -17,6 +17,10 @@ public class JoystickTransmuter extends InputTransmuter
   private Brake brake;
   private ObjectList fieldObjectList;
 
+  private boolean invertX = false;
+  private boolean invertY = false;
+  private boolean rotateThroughput = false;
+
   private DoubleSupplier inputX;
   private DoubleSupplier inputY;
 
@@ -46,26 +50,35 @@ public class JoystickTransmuter extends InputTransmuter
    */
   public Translation2d stickOutput()
   {
-    return process(new Translation2d(inputX.getAsDouble(), inputY.getAsDouble()));
+    double motionX = invertX ? -inputX.getAsDouble() : inputX.getAsDouble();
+    double motionY = invertY ? -inputY.getAsDouble() : inputY.getAsDouble();
+    return process(new Translation2d(motionX, motionY));
   }
 
   @Override
   public Translation2d process(Translation2d controlInput)
   {
-    return 
-    fieldObjectList.process
+    Translation2d motionXY = 
+    brake.process
     (
-      brake.process
+      inputCurve.process
       (
-        inputCurve.process
+        deadband.process
         (
-          deadband.process
-          (
-            controlInput
-          )
+          controlInput
         )
       )
     );
+
+    if (rotateThroughput)
+      {motionXY = motionXY.unaryMinus();}
+    
+    motionXY = fieldObjectList.process(motionXY);
+    
+    if (rotateThroughput)
+      {motionXY = motionXY.unaryMinus();}
+    
+    return motionXY;
   }
 
   /**
@@ -109,6 +122,61 @@ public class JoystickTransmuter extends InputTransmuter
   public JoystickTransmuter withFieldObjects(ObjectList fieldObjectList)
   {
     this.fieldObjectList = fieldObjectList;
+    return this;
+  }
+
+  /**
+   * Sets the inversion of the X input
+   * @param invert Should the input be inverted? Default true
+   * @return The JoystickTransmuter with the new inversion value
+   */
+  public JoystickTransmuter invertX(boolean invert)
+  {
+    invertX = invert;
+    return this;
+  }
+
+  /**
+   * Sets the inversion of the X input
+   * @param invert Should the input be inverted? Default true
+   * @return The JoystickTransmuter with the new inversion value
+   */
+  public JoystickTransmuter invertX()
+  {
+    invertX = true;
+    return this;
+  }
+
+  /**
+   * Sets the inversion of the Y input
+   * @param invert Should the input be inverted? Default true
+   * @return The JoystickTransmuter with the new inversion value
+   */
+  public JoystickTransmuter invertY(boolean invert)
+  {
+    invertY = invert;
+    return this;
+  }
+
+  /**
+   * Sets the inversion of the Y input
+   * @param invert Should the input be inverted? Default true
+   * @return The JoystickTransmuter with the new inversion value
+   */
+  public JoystickTransmuter invertY()
+  {
+    invertY = true;
+    return this;
+  }
+
+  /**
+   * Sets the rotation of the processing, used for alliance rotation
+   * @param rotate Should the input be rotated?
+   * @return The JoystickTransmuter with the new inversion value
+   */
+  public JoystickTransmuter rotated(boolean rotate)
+  {
+    rotateThroughput = rotate;
     return this;
   }
 }
