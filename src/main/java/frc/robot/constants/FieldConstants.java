@@ -164,12 +164,12 @@ public class FieldConstants
     public static final Line    cornerNBlue   = new Line(fieldWest, fieldNorth - cornerWidth, fieldWest + cornerLength, fieldNorth, wallRadius, wallBuffer);
     public static final Line    cornerSRed    = new Line(fieldEast, fieldSouth + cornerWidth, fieldEast - cornerLength, fieldSouth, wallRadius, wallBuffer);
     public static final Line    cornerNRed    = new Line(fieldEast, fieldNorth - cornerWidth, fieldEast - cornerLength, fieldNorth, wallRadius, wallBuffer);
-    public static final Attractor testAttractor = new Attractor(2, 2, 0, 2, 0.5);
+    public static final Attractor testAttractor = new Attractor(fieldCentre.getX(), fieldCentre.getY(), 0, 5, 1.5);
 
     // Set up Attractors and Conditions for GeoFence objects
     static
     {
-      
+      reefRed.addRelativeAttractors(0.5, 0, 1.5, 0.5, () -> true);
     }
 
     public static final ObjectList fieldBlueGeoFence = new ObjectList
@@ -192,7 +192,7 @@ public class FieldConstants
       cornerNRed
     );
 
-    public static final ObjectList fieldGeoFence = new ObjectList(field, fieldBlueGeoFence, fieldRedGeoFence, testAttractor);
+    public static final ObjectList fieldGeoFence = new ObjectList(field, fieldBlueGeoFence, fieldRedGeoFence);
 
   }
 }

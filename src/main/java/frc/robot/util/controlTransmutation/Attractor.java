@@ -16,13 +16,15 @@ public class Attractor extends FieldObject
   /** Point opposite where the approach heading intersects the effect radius */
   protected Translation2d backCheckpoint;
   /** Minimum angle tollerance, degrees */
-  protected static final double minAngleTollerance = 5;
+  protected static final double minAngleTollerance = 10;
   /** Maximum angle tollerance, degrees */
   protected static final double maxAngleTollerance = 45;
   /** Scalar for how far to back off from the target when approaching from the side */
   protected double approachScalar = 0.5;
   /** By standard implementation, checkPosition is always run first, which calculates this value */
   private double distance;
+
+  private Rotation2d lastInputAngle = Rotation2d.kZero;
 
 
   /**
@@ -57,22 +59,26 @@ public class Attractor extends FieldObject
       checkAngle(controlInput)
     )
     {
+      lastInputAngle = controlInput.getAngle();
+
       if (distance <= buffer)
       {
         // TODO: set up PID controller here
         Rotation2d angleToTarget = centre.minus(robotPos).getAngle();
 
-        return new Translation2d(Math.max(distance, controlInput.getNorm()), angleToTarget);
+        return new Translation2d(Math.min(distance * 0.5, controlInput.getNorm()), angleToTarget);
       }
       else
       {
-        Translation2d approachPoint = centre.minus(new Translation2d(distance * approachScalar, approachHeadingRotation));
+        double tangentOffset = Math.abs(centre.minus(robotPos).rotateBy(approachHeadingRotation.times(-1)).getY());
+        Translation2d approachPoint = centre.minus(new Translation2d(buffer + (tangentOffset * approachScalar), approachHeadingRotation));
         Rotation2d angleToTarget = approachPoint.minus(robotPos).getAngle();
 
         return new Translation2d(controlInput.getNorm(), angleToTarget);
       }
     }
 
+    lastInputAngle = Rotation2d.kZero;
     return controlInput;
   }
 
@@ -83,6 +89,15 @@ public class Attractor extends FieldObject
    */
   public boolean checkAngle(Translation2d controlInput)
   {
+    if 
+    (
+      !lastInputAngle.equals(Rotation2d.kZero) && 
+      Conversions.isRotationNear(lastInputAngle, controlInput.getAngle(), minAngleTollerance)
+    )
+    {
+      return true;
+    }
+    
     if (distance <= buffer)
     {
       return Conversions.isRotationNear(approachHeadingRotation, controlInput.getAngle(), maxAngleTollerance);
