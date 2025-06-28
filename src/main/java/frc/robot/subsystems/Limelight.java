@@ -115,82 +115,85 @@ public class Limelight extends SubsystemBase
   @Override
   public void periodic() 
   { 
-    //rotationKnown = SD.ROTATION_KNOWN.get();
-
-    if (!rotationKnown) 
+    if (Superstructure.isVisionActive())
     {
-      lastCycleRotationKnown = false;
-      if (!getLimelightRotation().equals(Rotation2d.kZero))
+      rotationKnown = Superstructure.isRotationKnown();
+
+      if (!rotationKnown) 
       {
-        rotationData.add(0, getLimelightRotation().getDegrees());
-  
-        if (rotationData.size() > mt1CyclesNeeded)
-          {rotationData.remove(mt1CyclesNeeded);}
-  
-        if (rotationData.size() == mt1CyclesNeeded)
+        lastCycleRotationKnown = false;
+        if (!getLimelightRotation().equals(Rotation2d.kZero))
         {
-          double lowest = rotationData.get(0).doubleValue();
-          double highest = rotationData.get(0).doubleValue();
-          
-          for(int i = 1; i < mt1CyclesNeeded; i++)
+          rotationData.add(0, getLimelightRotation().getDegrees());
+    
+          if (rotationData.size() > mt1CyclesNeeded)
+            {rotationData.remove(mt1CyclesNeeded);}
+    
+          if (rotationData.size() == mt1CyclesNeeded)
           {
-            lowest = Math.min(lowest, rotationData.get(i).doubleValue());
-            highest = Math.max(highest, rotationData.get(i).doubleValue());
-          }
-          
-          if (highest - lowest < 1)
-          {
-            rotationKnown = true;
-            //SD.ROTATION_KNOWN.put(true);
-            SmartDashboard.putNumber("limelight " + limelightName + " average rotation reading", (highest + lowest) / 2);
-            //RobotContainer.s_Swerve.getPigeon2().setYaw((highest + lowest) / 2);
+            double lowest = rotationData.get(0).doubleValue();
+            double highest = rotationData.get(0).doubleValue();
+            
+            for(int i = 1; i < mt1CyclesNeeded; i++)
+            {
+              lowest = Math.min(lowest, rotationData.get(i).doubleValue());
+              highest = Math.max(highest, rotationData.get(i).doubleValue());
+            }
+            
+            if (highest - lowest < 1)
+            {
+              rotationKnown = true;
+              Superstructure.setRotationKnown(true);
+              //SmartDashboard.putNumber("limelight " + limelightName + " average rotation reading", (highest + lowest) / 2);
+              Superstructure.setYaw((highest + lowest) / 2);
+            }
           }
         }
       }
-    }
 
-    if (!lastCycleRotationKnown) 
-    {
-      if (rotationKnown) 
+      if (!lastCycleRotationKnown) 
       {
-        rotationData.clear();
-        lastCycleRotationKnown = true;
-        //RobotContainer.s_Swerve.resetPose(new Pose2d(RobotContainer.swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(RobotContainer.s_Swerve.getPigeon2().getYaw().getValueAsDouble()))));
+        if (rotationKnown) 
+        {
+          rotationData.clear();
+          lastCycleRotationKnown = true;
+          //RobotContainer.s_Swerve.resetPose(new Pose2d(RobotContainer.swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(RobotContainer.s_Swerve.getPigeon2().getYaw().getValueAsDouble()))));
+        }
       }
-    }
 
-    if (updateLimelightPipeline() != pipelineIndex)
-    {
-      pipelineIndex = updateLimelightPipeline();
-      LimelightHelpers.setPipelineIndex(limelightName, pipelineIndex);
-    }
-
-    //headingDeg = Superstructure.getPigeon2().getYaw().getValueAsDouble();
-    //omegaRps = Units.radiansToRotations(RobotContainer.swerveState.Speeds.omegaRadiansPerSecond);
-    
-    LimelightHelpers.SetRobotOrientation(limelightName, headingDeg, 0, 0, 0, 0, 0);
-    
-    LimelightHelpers.SetFiducialIDFiltersOverride(limelightName, validIDs);
-    
-    if (SD.IO_LL.get()) //TODO: Replace MT1 references with MT2 when available
-    {
-      mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
-      //mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
-      
-      useUpdate = !(mt2 == null || mt2.tagCount == 0 || omegaRps > 2.0);
-      
-      if (useUpdate) 
+      if (updateLimelightPipeline() != pipelineIndex)
       {
-        stdDevFactor = Math.pow(mt2.avgTagDist, 2.0) / mt2.tagCount;
-
-        linearStdDev = Constants.Vision.linearStdDevBaseline * stdDevFactor;
-        rotStdDev = Constants.Vision.rotStdDevBaseline * stdDevFactor;
-
-        Superstructure.setVisionMeasurementStdDevs(VecBuilder.fill(linearStdDev, linearStdDev, rotStdDev));
-        Superstructure.addVisionMeasurement(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds));
+        pipelineIndex = updateLimelightPipeline();
+        LimelightHelpers.setPipelineIndex(limelightName, pipelineIndex);
       }
-    }
 
-    SD.SENSOR_GYRO.put(headingDeg);
+      headingDeg = Superstructure.getYaw();
+      //omegaRps = Units.radiansToRotations(RobotContainer.swerveState.Speeds.omegaRadiansPerSecond);
+      
+      LimelightHelpers.SetRobotOrientation(limelightName, headingDeg, 0, 0, 0, 0, 0);
+      
+      LimelightHelpers.SetFiducialIDFiltersOverride(limelightName, validIDs);
+      
+      if (SD.IO_LL.get()) //TODO: Replace MT1 references with MT2 when available
+      {
+        mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
+        //mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
+        
+        useUpdate = !(mt2 == null || mt2.tagCount == 0 || omegaRps > 2.0);
+        
+        if (useUpdate) 
+        {
+          stdDevFactor = Math.pow(mt2.avgTagDist, 2.0) / mt2.tagCount;
+
+          linearStdDev = Constants.Vision.linearStdDevBaseline * stdDevFactor;
+          rotStdDev = Constants.Vision.rotStdDevBaseline * stdDevFactor;
+
+          Superstructure.setVisionMeasurementStdDevs(VecBuilder.fill(linearStdDev, linearStdDev, rotStdDev));
+          Superstructure.addVisionMeasurement(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds));
+        }
+      }
+
+      SD.SENSOR_GYRO.put(headingDeg);
+    }
   }
 }
