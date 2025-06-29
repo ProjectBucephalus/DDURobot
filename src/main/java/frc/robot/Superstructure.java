@@ -1,5 +1,7 @@
 package frc.robot;
 
+import java.util.Set;
+
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
@@ -16,6 +18,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.swerve.HeadingLockedDrive;
@@ -31,6 +34,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralRoller;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.RumbleRequester;
+import frc.robot.subsystems.Limelight.TagPOI;
 import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;
@@ -66,11 +70,11 @@ public class Superstructure
   private static DriveState currentDriveState;
 
   private final CommandXboxController driver = new CommandXboxController(0);
-  private final CommandXboxController copilot = new CommandXboxController(1);
+  private final CommandXboxController operator = new CommandXboxController(1);
   private final RumbleRequester io_driverRight   = new RumbleRequester(driver, RumbleType.kRightRumble, SD.RUMBLE_D_R::put, SD.IO_RUMBLE_D::get);
   private final RumbleRequester io_driverLeft    = new RumbleRequester(driver, RumbleType.kLeftRumble, SD.RUMBLE_D_L::put, SD.IO_RUMBLE_D::get);
-  private final RumbleRequester io_copilotRight  = new RumbleRequester(copilot, RumbleType.kRightRumble, SD.RUMBLE_C_R::put, SD.IO_RUMBLE_C::get);
-  private final RumbleRequester io_copilotLeft   = new RumbleRequester(copilot, RumbleType.kLeftRumble, SD.RUMBLE_C_L::put, SD.IO_RUMBLE_C::get);
+  private final RumbleRequester io_copilotRight  = new RumbleRequester(operator, RumbleType.kRightRumble, SD.RUMBLE_C_R::put, SD.IO_RUMBLE_C::get);
+  private final RumbleRequester io_copilotLeft   = new RumbleRequester(operator, RumbleType.kLeftRumble, SD.RUMBLE_C_L::put, SD.IO_RUMBLE_C::get);
   
   private final JoystickTransmuter driverStick = new JoystickTransmuter(driver::getLeftY, driver::getLeftX).invertX().invertY();
   private final Brake driverBrake = new Brake(driver::getRightTriggerAxis, Constants.Control.maxThrottle, Constants.Control.minThrottle);
@@ -133,6 +137,7 @@ public class Superstructure
     );
 
     new Trigger(() -> {return currentDriveState == DriveState.None;})
+      .onTrue(Commands.runOnce(() -> Limelight.setActivePOI(TagPOI.REEF)))
       .whileTrue
       (
         new ManualDrive
@@ -145,6 +150,7 @@ public class Superstructure
       );
 
     new Trigger(() -> {return currentDriveState == DriveState.Reef;})
+      .onTrue(Commands.runOnce(() -> Limelight.setActivePOI(TagPOI.REEF)))
       .whileTrue
       (
         new TargetScoreDrive
@@ -157,6 +163,7 @@ public class Superstructure
       );
 
     new Trigger(() -> {return currentDriveState == DriveState.Station;})
+    .onTrue(Commands.runOnce(() -> Limelight.setActivePOI(TagPOI.CORALSTATION)))
       .whileTrue
       (
         new TargetStationDrive
@@ -169,6 +176,7 @@ public class Superstructure
       );
     
     new Trigger(() -> {return currentDriveState == DriveState.Barge;})
+      .onTrue(Commands.runOnce(() -> Limelight.setActivePOI(TagPOI.BARGE)))
       .whileTrue
       (
         new HeadingLockedDrive
@@ -184,6 +192,7 @@ public class Superstructure
 
     driver.leftTrigger().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_F.get()));
     driver.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
+    operator.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
     // Heading reset
     driver.start()
       .onTrue
@@ -224,10 +233,10 @@ public class Superstructure
         .withName("DisableNavigation")
       );
     
-    copilot.x().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
-    copilot.b().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
-    copilot.y().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
-    copilot.a().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
+    operator.x().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
+    operator.b().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
+    operator.y().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
+    operator.a().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
 
     driver.x().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Reef));
     driver.a().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Station));
