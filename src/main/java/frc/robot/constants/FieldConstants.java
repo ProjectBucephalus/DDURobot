@@ -135,7 +135,7 @@ public class FieldConstants
     public static final double circumscribedReefDiameter = 1.640;
     /** Circumscribed diameter of the reef zone hexagon (i.e. distance between opposite points) in metres */
     public static final double circumscribedReefZoneDiameter = 3;
-    public static final double penaltyReefZoneDiameter = circumscribedReefZoneDiameter + (robotRadiusInscribed * 2);
+    public static final double penaltyReefZoneDiameter = circumscribedReefZoneDiameter + (robotRadiusCircumscribed * 3);
     
     /** Buffer zone for the reef in metres */
     public static final double reefBuffer = 0.5;
@@ -143,8 +143,8 @@ public class FieldConstants
     /** Buffer zone for the barge zone in metres */
     public static final double bargeBuffer = 0.5;
 
-    public static final double cornerWidth  = 1.200;
-    public static final double cornerLength = 1.700;
+    public static final double cornerWidth  = 1.150;
+    public static final double cornerLength = 1.620;
 
     public static final Fence field = new Fence
     (
@@ -163,10 +163,10 @@ public class FieldConstants
     public static final Point   bargeColumn   = new Point(8.774, 4.026, 0.25, 0.15);
     public static final Box     bargeZoneBlue = new Box(8.190, 4.331, 9.358, fieldWidth, 0.1, bargeBuffer);
     public static final Box     bargeZoneRed  = new Box(8.190, 3.721, 9.358, 0, 0.1, bargeBuffer);
-    public static final Line    cornerSBlue   = new Line(fieldWest, fieldSouth + cornerWidth, fieldWest + cornerLength, fieldSouth, wallRadius, wallBuffer);
-    public static final Line    cornerNBlue   = new Line(fieldWest, fieldNorth - cornerWidth, fieldWest + cornerLength, fieldNorth, wallRadius, wallBuffer);
-    public static final Line    cornerSRed    = new Line(fieldEast, fieldSouth + cornerWidth, fieldEast - cornerLength, fieldSouth, wallRadius, wallBuffer);
-    public static final Line    cornerNRed    = new Line(fieldEast, fieldNorth - cornerWidth, fieldEast - cornerLength, fieldNorth, wallRadius, wallBuffer);
+    public static final Line    cornerSBlue   = new Line(fieldWest, fieldSouth + cornerWidth, fieldWest + cornerLength, fieldSouth, 0, wallBuffer);
+    public static final Line    cornerNBlue   = new Line(fieldWest, fieldNorth - cornerWidth, fieldWest + cornerLength, fieldNorth, 0, wallBuffer);
+    public static final Line    cornerSRed    = new Line(fieldEast, fieldSouth + cornerWidth, fieldEast - cornerLength, fieldSouth, 0, wallBuffer);
+    public static final Line    cornerNRed    = new Line(fieldEast, fieldNorth - cornerWidth, fieldEast - cornerLength, fieldNorth, 0, wallBuffer);
     public static final Attractor testAttractor = new Attractor(fieldCentre.getX(), fieldCentre.getY(), 0, 5, 1.5);
 
     // Set up Attractors and Conditions for GeoFence objects
