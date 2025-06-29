@@ -15,9 +15,9 @@ public final class Constants
     public static final double manualDiffectorDeadband = 0.25;
     public static final double stickDeadband = 0.15;
     /** Normal maximum robot speed, relative to maximum uncapped speed */
-    public static final double maxThrottle = 0.8;
+    public static final double maxThrottle = 1;
     /** Minimum robot speed when braking, relative to maximum uncapped speed */
-    public static final double minThrottle = 0.1;
+    public static final double minThrottle = 0.3;
     /** Normal maximum rotational robot speed, relative to maximum uncapped rotational speed */
     public static final double maxRotThrottle = 1;
     /** Minimum rotational robot speed when braking, relative to maximum uncapped rotational speed */
@@ -93,7 +93,9 @@ public final class Constants
     public static final int[] reefIDs = 
     {
       6, 7, 8, 9, 10, 11,    // Red Reef
-      17, 18, 19, 20, 21, 22 // Blue Reef
+      17, 18, 19, 20, 21, 22, // Blue Reef
+      1, 2, 3,   // Red Human Player Stations
+      12, 13, 16 // Blue Human Player Stations
     };
 
     public static final int[] bargeIDs = 
