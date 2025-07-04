@@ -19,8 +19,9 @@ public class FieldUtils
 {
   public static boolean isRedAlliance() 
   {
-    Optional<Alliance> alliance = DriverStation.getAlliance();
-    return alliance.isPresent() && alliance.get() == Alliance.Red;
+    return false;
+    //Optional<Alliance> alliance = DriverStation.getAlliance();
+    //return alliance.isPresent() && alliance.get() == Alliance.Red;
   }
 
   public static final int getDriverLocation()
