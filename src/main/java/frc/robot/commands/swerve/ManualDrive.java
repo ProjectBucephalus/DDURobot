@@ -48,7 +48,7 @@ public class ManualDrive extends SwerveCommandBase
     if (Math.abs(rotationVal) <= deadband) 
       {rotationVal = 0;}
     else
-      {rotationVal *= MathUtil.interpolate(Control.maxRotThrottle, Control.minRotThrottle, brakeSup.getAsDouble());}
+      {rotationVal *= brakeSup.getAsDouble();}
 
     if (motionXY.getNorm() != 0)
       {SD.STATE_DRIVE.put("Manual");}

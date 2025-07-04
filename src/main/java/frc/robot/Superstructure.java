@@ -78,6 +78,7 @@ public class Superstructure
   
   private final JoystickTransmuter driverStick = new JoystickTransmuter(driver::getLeftY, driver::getLeftX).invertX().invertY();
   private final Brake driverBrake = new Brake(driver::getRightTriggerAxis, Constants.Control.maxThrottle, Constants.Control.minThrottle);
+  private final Brake rotationBrake = new Brake(driver::getRightTriggerAxis, Constants.Control.maxRotThrottle, Constants.Control.minRotThrottle);
   private final InputCurve driverInputCurve = new InputCurve(1);
   private final Deadband driverDeadband = new Deadband();
 
@@ -132,7 +133,7 @@ public class Superstructure
         s_Swerve, 
         driverStick::stickOutput,
         () -> -driver.getRightX(),
-        driverBrake::get
+        rotationBrake::get
       )
     );
 
@@ -145,7 +146,7 @@ public class Superstructure
           s_Swerve, 
           driverStick::stickOutput,
           () -> -driver.getRightX(),
-          driverBrake::get
+          rotationBrake::get
         )
       );
 
@@ -221,7 +222,7 @@ public class Superstructure
             currentDriveState = DriveState.None;
             pigeon.setYaw(getAlliance() ? 0 : 180);
             s_Swerve.resetPose(new Pose2d(swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(pigeon.getYaw().getValueAsDouble()))));
-            FieldUtils.activateAllianceFencing();
+            //FieldUtils.activateAllianceFencing();
             rotationKnown = false;
             useLimelights = true;
           }
@@ -240,7 +241,7 @@ public class Superstructure
             currentDriveState = DriveState.None;
             pigeon.setYaw(getAlliance() ? 0 : 180);
             s_Swerve.resetPose(new Pose2d(swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(pigeon.getYaw().getValueAsDouble()))));
-            FieldUtils.activateAllianceFencing();
+            //FieldUtils.activateAllianceFencing();
             rotationKnown = false;
             useLimelights = false;
           }
