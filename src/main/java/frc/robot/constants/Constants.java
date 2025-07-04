@@ -13,13 +13,13 @@ public final class Constants
   public static final class Control
   {
     public static final double manualDiffectorDeadband = 0.25;
-    public static final double stickDeadband = 0.15;
+    public static final double stickDeadband = 0.1;
     /** Normal maximum robot speed, relative to maximum uncapped speed */
-    public static final double maxThrottle = 0.3;
+    public static final double maxThrottle = 1;
     /** Minimum robot speed when braking, relative to maximum uncapped speed */
     public static final double minThrottle = 0.1;
     /** Normal maximum rotational robot speed, relative to maximum uncapped rotational speed */
-    public static final double maxRotThrottle = 0.7;
+    public static final double maxRotThrottle = 1;
     /** Minimum rotational robot speed when braking, relative to maximum uncapped rotational speed */
     public static final double minRotThrottle = 0.3;
     /** Angle tolerance to consider something as "facing" the drivers, degrees */

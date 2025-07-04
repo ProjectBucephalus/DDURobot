@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.swerve.HeadingLockedDrive;
@@ -69,16 +70,17 @@ public class Superstructure
   private static TargetPosition currentTarget;
   private static DriveState currentDriveState;
 
-  private final CommandXboxController driver = new CommandXboxController(0);
+  //private final CommandXboxController driver = new CommandXboxController(0);
+  private final CommandJoystick driver = new CommandJoystick(0);
   //private final CommandXboxController operator = new CommandXboxController(1);
   //private final RumbleRequester io_driverRight   = new RumbleRequester(driver, RumbleType.kRightRumble, SD.RUMBLE_D_R::put, SD.IO_RUMBLE_D::get);
   //private final RumbleRequester io_driverLeft    = new RumbleRequester(driver, RumbleType.kLeftRumble, SD.RUMBLE_D_L::put, SD.IO_RUMBLE_D::get);
   //private final RumbleRequester io_copilotRight  = new RumbleRequester(operator, RumbleType.kRightRumble, SD.RUMBLE_C_R::put, SD.IO_RUMBLE_C::get);
   //private final RumbleRequester io_copilotLeft   = new RumbleRequester(operator, RumbleType.kLeftRumble, SD.RUMBLE_C_L::put, SD.IO_RUMBLE_C::get);
   
-  private final JoystickTransmuter driverStick = new JoystickTransmuter(driver::getLeftY, driver::getLeftX).invertX().invertY();
-  private final Brake driverBrake = new Brake(driver::getRightTriggerAxis, Constants.Control.maxThrottle, Constants.Control.minThrottle);
-  private final Brake rotationBrake = new Brake(driver::getRightTriggerAxis, Constants.Control.maxRotThrottle, Constants.Control.minRotThrottle);
+  private final JoystickTransmuter driverStick = new JoystickTransmuter(driver::getY, driver::getX).invertX().invertY();
+  private final Brake driverBrake = new Brake(() -> ((driver.getThrottle()+1)/2), Constants.Control.maxThrottle, Constants.Control.minThrottle);
+  private final Brake rotationBrake = new Brake(() -> ((driver.getThrottle()+1)/2), Constants.Control.maxRotThrottle, Constants.Control.minRotThrottle);
   private final InputCurve driverInputCurve = new InputCurve(1);
   private final Deadband driverDeadband = new Deadband();
 
@@ -132,7 +134,7 @@ public class Superstructure
       (
         s_Swerve, 
         driverStick::stickOutput,
-        () -> -driver.getRightX(),
+        () -> -driver.getTwist(),
         rotationBrake::get
       )
     );
@@ -145,7 +147,7 @@ public class Superstructure
         (
           s_Swerve, 
           driverStick::stickOutput,
-          () -> -driver.getRightX(),
+          () -> -driver.getTwist(),
           rotationBrake::get
         )
       );
@@ -211,7 +213,7 @@ public class Superstructure
     //driver.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
     //operator.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
     // Heading reset
-    driver.start()
+    driver.button(4)
       .onTrue
       (
         Commands.runOnce
@@ -230,35 +232,16 @@ public class Superstructure
         .ignoringDisable(true)
         .withName("HeadingReset")
       );
-    driver.back()
-      .onTrue
-      (
-        Commands.runOnce
-        (
-          () -> 
-          {
-            Pigeon2 pigeon = s_Swerve.getPigeon2();
-            currentDriveState = DriveState.None;
-            pigeon.setYaw(getAlliance() ? 0 : 180);
-            s_Swerve.resetPose(new Pose2d(swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(pigeon.getYaw().getValueAsDouble()))));
-            //FieldUtils.activateAllianceFencing();
-            rotationKnown = false;
-            useLimelights = false;
-          }
-        )
-        .ignoringDisable(true)
-        .withName("DisableNavigation")
-      );
     
     //operator.x().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
     //operator.b().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
     //operator.y().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
     //operator.a().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
 
-    driver.x().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.X));
-    driver.a().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.A));
-    driver.y().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Y));
-    driver.b().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.B));
+    driver.povLeft().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.X));
+    driver.povDown().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.A));
+    driver.povUp().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Y));
+    driver.povRight().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.B));
     driver.axisMagnitudeGreaterThan(Axis.kRightX.value, 0.2).onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
     
     //new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
