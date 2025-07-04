@@ -242,7 +242,7 @@ public class Superstructure
     driver.povDown().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.A));
     driver.povUp().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Y));
     driver.povRight().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.B));
-    driver.axisMagnitudeGreaterThan(Axis.kRightX.value, 0.2).onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
+    driver.button(2).onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
     
     //new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
   }
