@@ -48,7 +48,7 @@ public class Superstructure
   private static boolean useLimelights = true;
   private static boolean useFence = true;
   private static boolean useRestrictors = true;
-  private static boolean redAlliance;
+  private boolean redAlliance;
   
   private final Telemetry logger;
   
@@ -56,9 +56,9 @@ public class Superstructure
   private Field2d field;
   
   private static CommandSwerveDrivetrain s_Swerve;
-  private static CoralRoller s_Coral;
-  private static Limelight s_foreLL;
-  private static Limelight s_aftLL;
+  private CoralRoller s_Coral;
+  private Limelight s_foreLL;
+  private Limelight s_aftLL;
   
   private static TargetPosition currentTarget;
   private static DriveState currentDriveState;
@@ -85,7 +85,9 @@ public class Superstructure
 
     logger = new Telemetry(Constants.Swerve.maxSpeed);
 
-    setStartPose(getAlliance());
+    redAlliance = FieldUtils.isRedAlliance();
+
+    setStartPose(redAlliance);
     updateSwerveState();
     driverStick.rotated(redAlliance);
     FieldUtils.activateAllianceFencing();
@@ -94,7 +96,7 @@ public class Superstructure
 
     s_Swerve.registerTelemetry(logger::telemeterize);
     driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake).withInputCurve(driverInputCurve).withDeadband(driverDeadband);
-    FieldConstants.GeoFencing.fieldGeoFence.setActiveCondition(() -> isFenceActive() && isVisionActive());
+    FieldConstants.GeoFencing.fieldGeoFence.setActiveCondition(() -> useFence && useLimelights);
     FieldObject.setRobotRadiusSup(this::robotRadiusSup);
     FieldObject.setRobotPosSup(() -> getPosition());
 
@@ -197,7 +199,7 @@ public class Superstructure
           {
             Pigeon2 pigeon = s_Swerve.getPigeon2();
 
-            pigeon.setYaw(getAlliance() ? 0 : 180);
+            pigeon.setYaw(redAlliance ? 0 : 180);
             s_Swerve.resetPose(new Pose2d(swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(pigeon.getYaw().getValueAsDouble()))));
             FieldUtils.activateAllianceFencing();
             rotationKnown = false;
@@ -216,7 +218,7 @@ public class Superstructure
           {
             Pigeon2 pigeon = s_Swerve.getPigeon2();
 
-            pigeon.setYaw(getAlliance() ? 0 : 180);
+            pigeon.setYaw(redAlliance ? 0 : 180);
             s_Swerve.resetPose(new Pose2d(swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(pigeon.getYaw().getValueAsDouble()))));
             FieldUtils.activateAllianceFencing();
             rotationKnown = false;
@@ -283,10 +285,7 @@ public class Superstructure
   public static boolean isRotationKnown() {return rotationKnown;}
   public static void    setRotationKnown(boolean isKnown) {rotationKnown = isKnown;}
   public static boolean isVisionActive() {return useLimelights;}
-  public static boolean isFenceActive() {return useFence;}
   public static boolean isRestrictorsActive() {return useRestrictors;}
-  public static boolean isRedAlliance() {return redAlliance;}
-  public static boolean getAlliance() {return redAlliance = FieldUtils.isRedAlliance();}
   public static void    setYaw(double newYaw) {s_Swerve.getPigeon2().setYaw(newYaw);}
   public static double  getYaw() {return s_Swerve.getPigeon2().getYaw().getValueAsDouble();}
   public static boolean checkTargetPosition(TargetPosition testTargetPosition) {return testTargetPosition == currentTarget;}
