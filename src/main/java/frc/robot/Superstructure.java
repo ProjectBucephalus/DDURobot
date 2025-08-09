@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
@@ -59,6 +60,7 @@ public class Superstructure
   private CoralRoller s_Coral;
   private Limelight s_foreLL;
   private Limelight s_aftLL;
+  private Limelight[] limelights = {s_foreLL, s_aftLL};
   
   private static TargetPosition currentTarget;
   private static DriveState currentDriveState;
@@ -249,19 +251,32 @@ public class Superstructure
     io_copilotRight.addRumbleTrigger("ready to score" , new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose.getTranslation())));
   }
 
+  public void periodic()
+  {
+    updateSwerveState();
+    
+    if (SD.IO_LL.get()) 
+    {
+      for (Limelight ll : limelights)
+      {
+        ll.fetchVisionValues().ifPresent
+        (
+          visionVals -> 
+          {
+            var stdDevs = visionVals.getFirst();
+            var mt2 = visionVals.getSecond();
+    
+            s_Swerve.setVisionMeasurementStdDevs(stdDevs);
+            s_Swerve.addVisionMeasurement(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds));
+          }
+        );
+      }
+    }
+  }
+
   public Command getAutonomousCommand() 
   {
     return AutoFactories.getCommandList(SD.IO_AUTO.get(), s_Coral, s_Swerve, () -> swerveState);
-  }
-
-  public static void addVisionMeasurement(Pose2d poseMeasurement, double timestamp)
-  {
-    s_Swerve.addVisionMeasurement(poseMeasurement, timestamp);
-  }
-
-  public static void setVisionMeasurementStdDevs(Matrix<N3, N1> visionMeasurementStdDevs)
-  {
-    s_Swerve.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
   }
   
   public double robotRadiusSup() 

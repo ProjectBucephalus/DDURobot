@@ -29,7 +29,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() 
   {
-    superstructure.updateSwerveState();
+    superstructure.periodic();
     CommandScheduler.getInstance().run();
   }
 
