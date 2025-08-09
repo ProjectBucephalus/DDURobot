@@ -98,7 +98,7 @@ public class Superstructure
     driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake).withInputCurve(driverInputCurve).withDeadband(driverDeadband);
     FieldConstants.GeoFencing.fieldGeoFence.setActiveCondition(() -> useFence && useLimelights);
     FieldObject.setRobotRadiusSup(this::robotRadiusSup);
-    FieldObject.setRobotPosSup(() -> getPosition());
+    FieldObject.setRobotPosSup(this::getPosition);
 
     bindControls();
     bindRumbles();
@@ -240,18 +240,18 @@ public class Superstructure
     driver.b().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
     driver.axisMagnitudeGreaterThan(Axis.kRightX.value, 0.2).onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
     
-    new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
+    new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
   }
 
   private void bindRumbles()
   {
     io_copilotLeft.addRumbleTrigger("coral held", new Trigger(s_Coral::getSensor));
-    io_copilotRight.addRumbleTrigger("ready to score" , new Trigger(() -> FieldUtils.atReefLineUp(getSwerveState().Pose.getTranslation())));
+    io_copilotRight.addRumbleTrigger("ready to score" , new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose.getTranslation())));
   }
 
   public Command getAutonomousCommand() 
   {
-    return AutoFactories.getCommandList(SD.IO_AUTO.get(), s_Coral, s_Swerve, this::getSwerveState);
+    return AutoFactories.getCommandList(SD.IO_AUTO.get(), s_Coral, s_Swerve, () -> swerveState);
   }
 
   public static void addVisionMeasurement(Pose2d poseMeasurement, double timestamp)
