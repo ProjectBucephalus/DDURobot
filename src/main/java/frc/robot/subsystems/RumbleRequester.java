@@ -17,13 +17,13 @@ public class RumbleRequester extends SubsystemBase
   private final CommandXboxController controller;
   private final RumbleType side;
   private final DoubleSupplier strengthSup;
-  private final Consumer<String> outputCns;
+  private final Consumer<String> displayCns;
 
-  public RumbleRequester(CommandXboxController controller, RumbleType side, Consumer<String> outputCns, DoubleSupplier strengthSup)
+  public RumbleRequester(CommandXboxController controller, RumbleType side, Consumer<String> displayCns, DoubleSupplier strengthSup)
   {
     this.controller = controller;
     this.side = side;
-    this.outputCns = outputCns;
+    this.displayCns = displayCns;
     this.strengthSup = strengthSup;
   }
 
@@ -64,6 +64,6 @@ public class RumbleRequester extends SubsystemBase
   public void periodic() 
   {
     controller.setRumble(side, queue.isEmpty() ? 0 : strengthSup.getAsDouble());
-    outputCns.accept(queue.toString());
+    displayCns.accept(queue.toString());
   }
 }
