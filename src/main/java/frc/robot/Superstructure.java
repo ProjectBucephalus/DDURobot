@@ -4,6 +4,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -27,9 +28,9 @@ import frc.robot.constants.FieldConstants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.CoralRoller;
-import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.RumbleRequester;
-import frc.robot.subsystems.Limelight.TagPOI;
+import frc.robot.subsystems.vision.Limelight;
+import frc.robot.subsystems.vision.Limelight.TagPOI;
 import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;
@@ -255,11 +256,14 @@ public class Superstructure
   {
     updateSwerveState();
     
+    double yaw = getYaw();
+    SD.SENSOR_GYRO.put(yaw);
+
     if (SD.IO_LL.get()) 
     {
       for (Limelight ll : limelights)
       {
-        ll.fetchVisionValues().ifPresent
+        ll.fetchVisionValues(yaw).ifPresent
         (
           visionVals -> 
           {
@@ -302,7 +306,7 @@ public class Superstructure
   public static boolean isVisionActive() {return useLimelights;}
   public static boolean isRestrictorsActive() {return useRestrictors;}
   public static void    setYaw(double newYaw) {s_Swerve.getPigeon2().setYaw(newYaw);}
-  public static double  getYaw() {return s_Swerve.getPigeon2().getYaw().getValueAsDouble();}
+  public double  getYaw() {return s_Swerve.getPigeon2().getYaw().getValueAsDouble();}
   public static boolean checkTargetPosition(TargetPosition testTargetPosition) {return testTargetPosition == currentTarget;}
   public static boolean checkDriveState(DriveState testDriveState) {return testDriveState == currentDriveState;}
 }

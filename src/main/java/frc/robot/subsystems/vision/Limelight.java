@@ -2,12 +2,10 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.subsystems.vision;
 
 import java.util.ArrayList;
 import java.util.Optional;
-
-import com.ctre.phoenix6.Utils;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.MathUtil;
@@ -26,14 +24,12 @@ import frc.robot.util.SD;
 import frc.robot.util.LimelightHelpers.PoseEstimate;
 import frc.robot.util.LimelightHelpers;
 
-public class Limelight extends SubsystemBase 
+public class Limelight  
 {  
   private boolean useUpdate;
   private LimelightHelpers.PoseEstimate mt2;
-  private static int[] validIDs = Constants.Vision.reefIDs;
   private LimelightHelpers.PoseEstimate mt1;
   
-  private double headingDeg;
   private double omegaRps;
   private double stdDevFactor;
   private double linearStdDev;
@@ -41,7 +37,6 @@ public class Limelight extends SubsystemBase
   
   private final String limelightName;
 
-  private int pipelineIndex = (int)SD.IO_LL_EXPOSURE.defaultValue();
   public static boolean rotationKnown = false;
   private ArrayList<Double> rotationData = new ArrayList<Double>();
   private boolean lastCycleRotationKnown = false;
@@ -59,7 +54,6 @@ public class Limelight extends SubsystemBase
   public Limelight(String name) 
   {
     limelightName = name;
-    LimelightHelpers.setPipelineIndex(limelightName, pipelineIndex);
   }
 
   public void setIMUMode(int mode)
@@ -74,49 +68,25 @@ public class Limelight extends SubsystemBase
     return Rotation2d.kZero;
   }
 
-  public void setThrottle(int throttle)
+  protected Limelight updateValidIDs(int[] validIDs)
   {
-    NetworkTableInstance.getDefault().getTable(limelightName).getEntry("<throttle_set>").setNumber(throttle);
+    LimelightHelpers.SetFiducialIDFiltersOverride(limelightName, validIDs);
+    return this;
   }
 
-  public static void setActivePOI(TagPOI activePOI) 
+  protected Limelight updatePipeline(int pipelineIndex)
   {
-    switch (activePOI) 
-    {
-      default:
-      case REEF:
-        validIDs = Constants.Vision.reefIDs;
-        break;
-      case BARGE:
-        validIDs = Constants.Vision.bargeIDs;
-        break;
-      case PROCESSOR:
-      case CORALSTATION:
-        validIDs = Constants.Vision.humanPlayerStationIDs;
-        break;
-    }
-  }
-
-  public int updateLimelightPipeline()
-  {
-    if (SD.IO_LL_EXPOSURE_UP.button())
-    {
-      SD.IO_LL_EXPOSURE.put(MathUtil.clamp(SD.IO_LL_EXPOSURE.get().intValue() + 1, 0, 7));
-    }
-    if (SD.IO_LL_EXPOSURE_DOWN.button())
-    {
-      SD.IO_LL_EXPOSURE.put(MathUtil.clamp(SD.IO_LL_EXPOSURE.get().intValue() - 1, 0, 7));
-    }
-    
-    return SD.IO_LL_EXPOSURE.get().intValue();
+    LimelightHelpers.setPipelineIndex(limelightName, pipelineIndex);
+    return this;
   }
 
   @Logged
   public Pose3d getMT1Pose()
     {return LimelightHelpers.getBotPose3d_wpiBlue(limelightName);}
 
-  public Optional<Pair<Matrix<N3,N1>, PoseEstimate>> fetchVisionValues()
+  public Optional<Pair<Matrix<N3,N1>, PoseEstimate>> fetchVisionValues(double headingDeg)
   {
+    LimelightHelpers.SetRobotOrientation(limelightName, headingDeg, 0, 0, 0, 0, 0);
     mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
     //mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
     
@@ -134,7 +104,6 @@ public class Limelight extends SubsystemBase
     return Optional.empty();
   }
 
-  @Override
   public void periodic() 
   { 
     if (Superstructure.isVisionActive())
@@ -183,20 +152,7 @@ public class Limelight extends SubsystemBase
         }
       }
 
-      if (updateLimelightPipeline() != pipelineIndex)
-      {
-        pipelineIndex = updateLimelightPipeline();
-        LimelightHelpers.setPipelineIndex(limelightName, pipelineIndex);
-      }
-
-      headingDeg = Superstructure.getYaw();
       //omegaRps = Units.radiansToRotations(RobotContainer.swerveState.Speeds.omegaRadiansPerSecond);
-      
-      LimelightHelpers.SetRobotOrientation(limelightName, headingDeg, 0, 0, 0, 0, 0);
-      
-      LimelightHelpers.SetFiducialIDFiltersOverride(limelightName, validIDs);
-
-      SD.SENSOR_GYRO.put(headingDeg);
     }
   }
 }
