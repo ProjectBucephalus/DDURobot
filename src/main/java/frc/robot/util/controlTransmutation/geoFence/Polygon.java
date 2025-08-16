@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.util.Conversions;
 import frc.robot.util.controlTransmutation.GeoFence;
+import static frc.robot.constants.FieldConstants.GeoFencing.*;
 
 /**
  * Polygon type GeoFence object </p>

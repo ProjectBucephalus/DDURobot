@@ -36,8 +36,6 @@ public final class Constants
     public static final double lineupTolerance = 0.05;
   }
 
-  
-
   public static final class Swerve
   {
     /** Centre-centre distance (length and width) between wheels, metres */

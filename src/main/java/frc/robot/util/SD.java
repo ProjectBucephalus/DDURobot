@@ -113,7 +113,7 @@ public class SD
 
     public boolean button() 
     {
-      if (SmartDashboard.getBoolean(label, defaultValue)) 
+      if (get()) 
       {
         put(false); 
         return true;

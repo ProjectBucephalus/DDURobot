@@ -5,35 +5,18 @@
 package frc.robot.subsystems.vision;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
 import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Pair;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Superstructure;
-import frc.robot.constants.Constants;
-import frc.robot.util.SD;
 import frc.robot.util.LimelightHelpers.PoseEstimate;
 import frc.robot.util.LimelightHelpers;
 
 public class Limelight  
 {  
-  private boolean useUpdate;
   private LimelightHelpers.PoseEstimate mt2;
   private LimelightHelpers.PoseEstimate mt1;
-  
-  private double omegaRps;
-  private double stdDevFactor;
-  private double linearStdDev;
-  private double rotStdDev;
   
   private final String limelightName;
 
@@ -68,40 +51,24 @@ public class Limelight
     return Rotation2d.kZero;
   }
 
-  protected Limelight updateValidIDs(int[] validIDs)
+  protected void updateValidIDs(int[] validIDs)
   {
     LimelightHelpers.SetFiducialIDFiltersOverride(limelightName, validIDs);
-    return this;
   }
 
-  protected Limelight updatePipeline(int pipelineIndex)
+  protected void updatePipeline(int pipelineIndex)
   {
     LimelightHelpers.setPipelineIndex(limelightName, pipelineIndex);
-    return this;
   }
 
   @Logged
   public Pose3d getMT1Pose()
     {return LimelightHelpers.getBotPose3d_wpiBlue(limelightName);}
 
-  public Optional<Pair<Matrix<N3,N1>, PoseEstimate>> fetchVisionValues(double headingDeg)
+  public PoseEstimate getMT2(double headingDeg)
   {
     LimelightHelpers.SetRobotOrientation(limelightName, headingDeg, 0, 0, 0, 0, 0);
-    mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
-    //mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
-    
-    useUpdate = !(mt2 == null || mt2.tagCount == 0 || omegaRps > 2.0);
-    
-    if (useUpdate) 
-    {
-      stdDevFactor = Math.pow(mt2.avgTagDist, 2.0) / mt2.tagCount;
-
-      linearStdDev = Constants.Vision.linearStdDevBaseline * stdDevFactor;
-      rotStdDev = Constants.Vision.rotStdDevBaseline * stdDevFactor;
-
-      return Optional.of(Pair.of(VecBuilder.fill(linearStdDev, linearStdDev, rotStdDev), mt2));
-    }
-    return Optional.empty();
+    return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
   }
 
   public void periodic() 

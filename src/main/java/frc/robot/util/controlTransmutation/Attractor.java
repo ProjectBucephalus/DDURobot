@@ -4,6 +4,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.util.Conversions;
 
+import static frc.robot.constants.FieldConstants.AutoDrive.*;
+
 /** Guides the robot towards a point along a given heading */
 public class Attractor extends FieldObject
 {
@@ -15,10 +17,6 @@ public class Attractor extends FieldObject
   protected Translation2d frontCheckpoint;
   /** Point opposite where the approach heading intersects the effect radius */
   protected Translation2d backCheckpoint;
-  /** Minimum angle tollerance, degrees */
-  protected static final double minAngleTollerance = 20;
-  /** Maximum angle tollerance, degrees */
-  protected static final double maxAngleTollerance = 60;
   /** Scalar for how far to back off from the target when approaching from the side */
   protected double approachScalar = 0.1;
   /** Input scale for approaching within the buffer based on distance */
@@ -94,7 +92,7 @@ public class Attractor extends FieldObject
     if 
     (
       !lastInputAngle.equals(Rotation2d.kZero) && 
-      Conversions.isRotationNear(lastInputAngle, controlInput.getAngle(), minAngleTollerance)
+      Conversions.isRotationNear(lastInputAngle, controlInput.getAngle(), minAngleTolerance)
     )
     {
       return true;
@@ -102,12 +100,12 @@ public class Attractor extends FieldObject
     
     if (distance <= buffer)
     {
-      return Conversions.isRotationNear(approachHeadingRotation, controlInput.getAngle(), maxAngleTollerance);
+      return Conversions.isRotationNear(approachHeadingRotation, controlInput.getAngle(), maxAngleTolerance);
     }
 
     Rotation2d angleToTarget = centre.minus(robotPos).getAngle();
     
-    double angleTolerance = Conversions.clamp(2*Math.atan(buffer/distance), minAngleTollerance, maxAngleTollerance);
+    double angleTolerance = Conversions.clamp(2*Math.atan(buffer/distance), minAngleTolerance, maxAngleTolerance);
 
     return Conversions.isRotationNear(angleToTarget, controlInput.getAngle(), angleTolerance);
   }

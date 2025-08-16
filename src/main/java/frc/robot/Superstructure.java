@@ -1,11 +1,10 @@
 package frc.robot;
 
-import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
-import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -24,6 +23,7 @@ import frc.robot.commands.swerve.ManualDrive;
 import frc.robot.commands.swerve.TargetScoreDrive;
 import frc.robot.commands.swerve.TargetStationDrive;
 import frc.robot.constants.Constants;
+import frc.robot.subsystems.vision.Vision;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -51,17 +51,16 @@ public class Superstructure
   private static boolean useFence = true;
   private static boolean useRestrictors = true;
   private boolean redAlliance;
-  
-  private final Telemetry logger;
+
   
   private SwerveDriveState swerveState;
   private Field2d field;
   
-  private static CommandSwerveDrivetrain s_Swerve;
-  private CoralRoller s_Coral;
-  private Limelight s_foreLL;
-  private Limelight s_aftLL;
-  private Limelight[] limelights = {s_foreLL, s_aftLL};
+  private final Telemetry logger;
+  
+  private final CommandSwerveDrivetrain s_Swerve;
+  private final CoralRoller s_Coral;
+  private final Vision s_Vision;
   
   private static TargetPosition currentTarget;
   private static DriveState currentDriveState;
@@ -83,8 +82,7 @@ public class Superstructure
     field = new Field2d();
     s_Swerve = TunerConstants.createDrivetrain();
     s_Coral = new CoralRoller();
-    s_foreLL = new Limelight("limelight-fore");
-    s_aftLL = new Limelight("limelight-aft");
+    s_Vision = new Vision(this::applyVisionEstimate, () -> Pair.of(getYaw(), swerveState.Speeds.omegaRadiansPerSecond), new Limelight("limelight-fore"), new Limelight("limelight-aft"));
 
     logger = new Telemetry(Constants.Swerve.maxSpeed);
 
@@ -105,6 +103,7 @@ public class Superstructure
 
     bindControls();
     bindRumbles();
+    bindSD();
   }
 
   public SwerveDriveState getSwerveState() 
@@ -136,7 +135,7 @@ public class Superstructure
     );
 
     new Trigger(() -> {return currentDriveState == DriveState.None;})
-      .onTrue(Commands.runOnce(() -> Limelight.setActivePOI(TagPOI.REEF)))
+      .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.REEF)))
       .whileTrue
       (
         new ManualDrive
@@ -149,7 +148,7 @@ public class Superstructure
       );
 
     new Trigger(() -> {return currentDriveState == DriveState.Reef;})
-      .onTrue(Commands.runOnce(() -> Limelight.setActivePOI(TagPOI.REEF)))
+      .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.REEF)))
       .whileTrue
       (
         new TargetScoreDrive
@@ -162,7 +161,7 @@ public class Superstructure
       );
 
     new Trigger(() -> {return currentDriveState == DriveState.Station;})
-    .onTrue(Commands.runOnce(() -> Limelight.setActivePOI(TagPOI.CORALSTATION)))
+    .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.CORALSTATION)))
       .whileTrue
       (
         new TargetStationDrive
@@ -175,7 +174,7 @@ public class Superstructure
       );
     
     new Trigger(() -> {return currentDriveState == DriveState.Barge;})
-      .onTrue(Commands.runOnce(() -> Limelight.setActivePOI(TagPOI.BARGE)))
+      .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.BARGE)))
       .whileTrue
       (
         new HeadingLockedDrive
@@ -252,30 +251,24 @@ public class Superstructure
     io_copilotRight.addRumbleTrigger("ready to score" , new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose.getTranslation())));
   }
 
+  private void bindSD()
+  {
+    new Trigger(SD.IO_LL_EXPOSURE_UP::button).onTrue(Commands.runOnce(s_Vision::incrementPipeline));
+    new Trigger(SD.IO_LL_EXPOSURE_DOWN::button).onTrue(Commands.runOnce(s_Vision::decrementPipeline));
+  }
+
+  private void applyVisionEstimate(Pose2d poseEstMeters, double timestampSeconds, Matrix<N3, N1> stdDevs)
+  {
+    s_Swerve.setVisionMeasurementStdDevs(stdDevs);
+    s_Swerve.addVisionMeasurement(poseEstMeters, timestampSeconds);
+  }
+
   public void periodic()
   {
     updateSwerveState();
     
     double yaw = getYaw();
     SD.SENSOR_GYRO.put(yaw);
-
-    if (SD.IO_LL.get()) 
-    {
-      for (Limelight ll : limelights)
-      {
-        ll.fetchVisionValues(yaw).ifPresent
-        (
-          visionVals -> 
-          {
-            var stdDevs = visionVals.getFirst();
-            var mt2 = visionVals.getSecond();
-    
-            s_Swerve.setVisionMeasurementStdDevs(stdDevs);
-            s_Swerve.addVisionMeasurement(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds));
-          }
-        );
-      }
-    }
   }
 
   public Command getAutonomousCommand() 
@@ -306,7 +299,7 @@ public class Superstructure
   public static boolean isVisionActive() {return useLimelights;}
   public static boolean isRestrictorsActive() {return useRestrictors;}
   public static void    setYaw(double newYaw) {s_Swerve.getPigeon2().setYaw(newYaw);}
-  public double  getYaw() {return s_Swerve.getPigeon2().getYaw().getValueAsDouble();}
+  public double getYaw() {return s_Swerve.getPigeon2().getYaw().getValueAsDouble();}
   public static boolean checkTargetPosition(TargetPosition testTargetPosition) {return testTargetPosition == currentTarget;}
   public static boolean checkDriveState(DriveState testDriveState) {return testDriveState == currentDriveState;}
 }

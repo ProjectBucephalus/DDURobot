@@ -4,6 +4,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 
+import static frc.robot.constants.FieldConstants.GeoFencing.*;
+
 /** 
  * Derived from GeoFence logic, acts as a non-directional speed-limit within the given area </p>
  * Using a local speed limit <= 0 allows it to be used as a position/distance check
@@ -11,7 +13,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 public class Restrictor extends FieldObject
 {
   protected double localSpeedLimit;
-  protected static final double minLocalSpeedLimit = 0.05;
 
   /**
    * Basic point-type restrictor object

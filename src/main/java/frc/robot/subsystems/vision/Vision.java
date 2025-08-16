@@ -4,10 +4,16 @@
 
 package frc.robot.subsystems.vision;
 
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.function.Supplier;
+
+import com.ctre.phoenix6.Utils;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
@@ -24,102 +30,106 @@ import frc.robot.util.SD;
 public class Vision extends SubsystemBase 
 {
   private final PoseEstimateConsumer consumer;
-  private final Supplier<Rotation2d> gyro;
+  private final Supplier<Pair<Double, Double>> rotationData;
   private final Limelight[] lls;
 
-  private final TimeInterpolatableBuffer<Rotation2d> headingBuffer =
-    TimeInterpolatableBuffer.createBuffer(1.0);
-  private static int[] validIDs = Constants.Vision.reefIDs;
-
+  private int[] validIDs = Constants.Vision.reefIDs;
   private int pipelineIndex = (int)SD.IO_LL_EXPOSURE.defaultValue();
-  private boolean pipelineUpdated = false;
+
+  private ArrayList<Double> rotationBuf = new ArrayList<Double>();
+  private boolean lastCycleRotationKnown = false;
+  private final int mt1CyclesNeeded = 10;
 
   /** Creates a new Vision. */
-  public Vision(PoseEstimateConsumer consumer, Supplier<Rotation2d> gyro, Limelight... lls) 
+  public Vision(PoseEstimateConsumer consumer, Supplier<Pair<Double, Double>> rotationData, Limelight... lls) 
   {
     this.consumer = consumer;
-    this.gyro = gyro;
+    this.rotationData = rotationData;
     this.lls = lls;
   }
 
   public void setActivePOI(TagPOI activePOI) 
   {
+    validIDs =
     switch (activePOI) 
     {
-      default:
-      case REEF:
-        validIDs = Constants.Vision.reefIDs;
-        break;
-      case BARGE:
-        validIDs = Constants.Vision.bargeIDs;
-        break;
-      case PROCESSOR:
-      case CORALSTATION:
-        validIDs = Constants.Vision.humanPlayerStationIDs;
-        break;
-    }
+      case REEF -> Constants.Vision.reefIDs;
+      case BARGE -> Constants.Vision.bargeIDs;
+      case CORALSTATION, PROCESSOR -> Constants.Vision.humanPlayerStationIDs;
+      default -> Constants.Vision.reefIDs;
+    };
   }
 
-  public int updatePipeline()
+  public void incrementPipeline() 
   {
-    if (SD.IO_LL_EXPOSURE_UP.button())
-    {
-      SD.IO_LL_EXPOSURE.put(MathUtil.clamp(SD.IO_LL_EXPOSURE.get().intValue() + 1, 0, 7));
-    }
-    if (SD.IO_LL_EXPOSURE_DOWN.button())
-    {
-      SD.IO_LL_EXPOSURE.put(MathUtil.clamp(SD.IO_LL_EXPOSURE.get().intValue() - 1, 0, 7));
-    }
+    pipelineIndex = MathUtil.clamp(pipelineIndex + 1, 0, 7);
+    for (var ll : lls) {ll.updatePipeline(pipelineIndex);}
+    SD.IO_LL_EXPOSURE.put(pipelineIndex);
+  }
 
-    return SD.IO_LL_EXPOSURE.get().intValue();
+  public void decrementPipeline()
+  {
+    pipelineIndex = MathUtil.clamp(pipelineIndex - 1, 0, 7);
+    for (var ll : lls) {ll.updatePipeline(pipelineIndex);}
+    SD.IO_LL_EXPOSURE.put(pipelineIndex);
   }
 
   @Override
   public void periodic() 
   {
-    headingBuffer.addSample(RobotController.getTime(), gyro.get());
-
-    int currentPipeline = updatePipeline();
-    if (currentPipeline != pipelineIndex)
-    {
-      pipelineIndex = currentPipeline;
-      pipelineUpdated = true;
-    }
-
     for (var ll : lls)
     {    
       ll.updateValidIDs(validIDs);
-
-      if (pipelineUpdated)
-      {
-        ll.updatePipeline(pipelineIndex);
-        pipelineUpdated = false;
-      }
     } 
+
+    if (SD.IO_LL.get()) 
+    {
+      for (var ll : lls)
+      {
+        var rotationVals = rotationData.get();
+        double heading = rotationVals.getFirst();
+        double omegaRps = rotationVals.getSecond();
+
+        var mt2 = ll.getMT2(heading);
+        //mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
+        
+        boolean useUpdate = !(mt2 == null || mt2.tagCount == 0 || omegaRps > 2.0);
+        
+        if (useUpdate) 
+        {
+          double stdDevFactor = Math.pow(mt2.avgTagDist, 2.0) / mt2.tagCount;
+
+          double linearStdDev = Constants.Vision.linearStdDevBaseline * stdDevFactor;
+          double rotStdDev = Constants.Vision.rotStdDevBaseline * stdDevFactor;
+
+          consumer.accept(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds), VecBuilder.fill(linearStdDev, linearStdDev, rotStdDev));
+        }
+      }
+    }
 
     if (Superstructure.isVisionActive())
     {
-      rotationKnown = Superstructure.isRotationKnown();
+      boolean rotationKnown = Superstructure.isRotationKnown();
 
       if (!rotationKnown) 
       {
         lastCycleRotationKnown = false;
         if (!getLimelightRotation().equals(Rotation2d.kZero))
         {
-          rotationData.add(0, getLimelightRotation().getDegrees());
+          rotationBuf.add(0, getLimelightRotation().getDegrees());
     
-          if (rotationData.size() > mt1CyclesNeeded)
-            {rotationData.remove(mt1CyclesNeeded);}
+          if (rotationBuf.size() > mt1CyclesNeeded)
+            {rotationBuf.remove(mt1CyclesNeeded);}
     
-          if (rotationData.size() == mt1CyclesNeeded)
+          if (rotationBuf.size() == mt1CyclesNeeded)
           {
-            double lowest = rotationData.get(0).doubleValue();
-            double highest = rotationData.get(0).doubleValue();
+            double lowest = rotationBuf.get(0).doubleValue();
+            double highest = rotationBuf.get(0).doubleValue();
             
             for(int i = 1; i < mt1CyclesNeeded; i++)
             {
-              lowest = Math.min(lowest, rotationData.get(i).doubleValue());
-              highest = Math.max(highest, rotationData.get(i).doubleValue());
+              lowest = Math.min(lowest, rotationBuf.get(i).doubleValue());
+              highest = Math.max(highest, rotationBuf.get(i).doubleValue());
             }
             
             if (highest - lowest < 1)
@@ -137,7 +147,7 @@ public class Vision extends SubsystemBase
       {
         if (rotationKnown) 
         {
-          rotationData.clear();
+          rotationBuf.clear();
           lastCycleRotationKnown = true;
           //RobotContainer.s_Swerve.resetPose(new Pose2d(RobotContainer.swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(RobotContainer.s_Swerve.getPigeon2().getYaw().getValueAsDouble()))));
         }

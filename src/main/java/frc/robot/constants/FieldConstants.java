@@ -99,6 +99,17 @@ public class FieldConstants
 
   public static final class GeoFencing
   {   
+    /**
+     * Minimum value for object radius, metres </p>
+     * The system is not confirmed to handle negative radii
+     */
+    public static final double minRadius = 0;
+    /**
+     * Minimum value for object buffer, metres </p>
+     * A small buffer is required to ensure safe transitions
+     */
+    public static final double minBuffer = 0.1;
+
     // Relative to the centre of the robot, in direction the robot is facing
     // These values are the distance in metres to the virtual wall the robot will stop at
     // 0 means the wall is running through the middle of the robot
@@ -218,5 +229,15 @@ public class FieldConstants
 
     public static final ObjectList fieldGeoFence = new ObjectList(field, fieldBlueGeoFence, fieldRedGeoFence);
 
+    /** Minimum speed limit within a restrictor */
+    public static final double minLocalSpeedLimit = 0.05;
+  }
+
+  public static final class AutoDrive 
+  {
+    /** Attractor minimum angle tolerance, degrees */
+    public static final double minAngleTolerance = 20;
+    /** Attractor maximum angle tolerance, degrees */
+    public static final double maxAngleTolerance = 60;
   }
 }
