@@ -24,8 +24,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Superstructure;
 import frc.robot.constants.Constants;
 import frc.robot.subsystems.vision.Limelight.TagPOI;
-import frc.robot.util.LimelightHelpers;
 import frc.robot.util.SD;
+import frc.robot.util.libs.LimelightHelpers;
 
 public class Vision extends SubsystemBase 
 {
@@ -34,7 +34,7 @@ public class Vision extends SubsystemBase
   private final Limelight[] lls;
 
   private int[] validIDs = Constants.Vision.reefIDs;
-  private int pipelineIndex = (int)SD.IO_LL_EXPOSURE.defaultValue();
+  private int pipelineIndex = (int)SD.LL_EXPOSURE.defaultValue();
 
   private ArrayList<Double> rotationBuf = new ArrayList<Double>();
   private boolean lastCycleRotationKnown = false;
@@ -64,14 +64,14 @@ public class Vision extends SubsystemBase
   {
     pipelineIndex = MathUtil.clamp(pipelineIndex + 1, 0, 7);
     for (var ll : lls) {ll.updatePipeline(pipelineIndex);}
-    SD.IO_LL_EXPOSURE.put(pipelineIndex);
+    SD.LL_EXPOSURE.put(pipelineIndex);
   }
 
   public void decrementPipeline()
   {
     pipelineIndex = MathUtil.clamp(pipelineIndex - 1, 0, 7);
     for (var ll : lls) {ll.updatePipeline(pipelineIndex);}
-    SD.IO_LL_EXPOSURE.put(pipelineIndex);
+    SD.LL_EXPOSURE.put(pipelineIndex);
   }
 
   @Override
@@ -82,7 +82,7 @@ public class Vision extends SubsystemBase
       ll.updateValidIDs(validIDs);
     } 
 
-    if (SD.IO_LL.get()) 
+    if (SD.LL_TOGGLE.get()) 
     {
       for (var ll : lls)
       {

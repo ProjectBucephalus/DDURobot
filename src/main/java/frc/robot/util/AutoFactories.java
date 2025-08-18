@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
@@ -30,7 +29,7 @@ public class AutoFactories
    */
   public static Command getCommandList(String commandInput, CoralRoller s_Coral, CommandSwerveDrivetrain s_Swerve, Supplier<SwerveDriveState> swerveStateSup)
   {
-    // Removes all space characters from the single-String command phrases, ensures it's all lowercase, and then splits it into individual strings, which are stored in an array
+    // Removes all whitespace characters from the single-String command phrases, ensures it's all lowercase, and then splits it into individual strings, which are stored in an array
     String[] splitCommands = commandInput.replaceAll("//s", "").toLowerCase().split(",");
     // The arraylist that all the commands will be placed into
     ArrayList<Command> commandList = new ArrayList<>();
@@ -71,7 +70,7 @@ public class AutoFactories
         case 'r':
           commandList.add(s_Swerve.poseLockDriveCommand(new AlliancePose2dSup(FieldConstants.getLineup(splitCommand)), swerveStateSup));
           commandList.add(Commands.waitSeconds(0.1));
-          commandList.add(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
+          commandList.add(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed).until(s_Coral::getSensor));
           break;
 
         case 'c':
@@ -85,17 +84,5 @@ public class AutoFactories
     }
 
     return new SequentialCommandGroup(commandList.toArray(Command[]::new)).withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
-  }
-
-  public static void displayPose(Pose2d pose, Rotation2d rotation)
-  {
-    SD.IO_POSE_X.put(pose.getX());
-    SD.IO_POSE_Y.put(pose.getY());
-    SD.IO_POSE_R.put(rotation.getDegrees());
-  }
-
-  public static void displayPose(Pose2d pose) 
-  {
-    displayPose(pose, pose.getRotation());
   }
 }

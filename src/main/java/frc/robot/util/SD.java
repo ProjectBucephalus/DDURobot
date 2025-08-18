@@ -4,8 +4,6 @@
 
 package frc.robot.util;
 
-import java.util.Set;
-
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -15,60 +13,32 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 /** Simplified interface for most SmartDashboard interactions */
 public class SD 
 {
-  public static final BooleanKey IO_LL = new BooleanKey("Use Limelight", true);
-  public static final DoubleKey  IO_LL_EXPOSURE = new DoubleKey("Exposure Setting", 0);
-  public static final BooleanKey IO_LL_EXPOSURE_UP = new BooleanKey("Increase Exposure", false);
-  public static final BooleanKey IO_LL_EXPOSURE_DOWN = new BooleanKey("Decrease Exposure", false);
+  public static final StringKey  AUTO_STRING      = new StringKey("Auto String", "");
 
-  public static final StringKey  STATE_HEADING = new StringKey("Heading State", "");
-  public static final StringKey  STATE_DRIVE = new StringKey("Drive State", "Disabled");
-  public static final BooleanKey STATE_HEADING_SNAP = new BooleanKey("Heading Snap Updating", true);
+  public static final DoubleKey  LL_EXPOSURE      = new DoubleKey("Exposure Setting", 0);
+  public static final BooleanKey LL_EXPOSURE_UP   = new BooleanKey("Increase Exposure", false);
+  public static final BooleanKey LL_EXPOSURE_DOWN = new BooleanKey("Decrease Exposure", false);
+  public static final BooleanKey LL_TOGGLE        = new BooleanKey("Use Limelight", true);
 
-  public static final BooleanKey IO_GEOFENCE = new BooleanKey("Use Fence", true);
-  public static final BooleanKey IO_OUTER_GEOFENCE = new BooleanKey("Wall Fence", true);
-  public static final DoubleKey  IO_GEOFENCE_IMPACT = new DoubleKey("Fence Impact", 1);
-  public static final DoubleKey  IO_RUMBLE_D = new DoubleKey("Driver Rumble", Constants.RumblerConstants.driverDefault);
-  public static final DoubleKey  IO_RUMBLE_C = new DoubleKey("Copilot Rumble", Constants.RumblerConstants.copilotDefault);
+  public static final StringKey  STATE_HEADING    = new StringKey("Heading State", "");
+  public static final StringKey  STATE_DRIVE      = new StringKey("Drive State", "Disabled");
 
-  public static final DoubleKey SENSOR_GYRO = new DoubleKey("Gyro yaw", 0);
-
-  public static final StringKey RUMBLE_D_R = new StringKey("DriverRight Rumble Queue", "");
-  public static final StringKey RUMBLE_D_L = new StringKey("DriverLeft Rumble Queue", "");
-  public static final StringKey RUMBLE_C_R = new StringKey("CopilotRight Rumble Queue", "");
-  public static final StringKey RUMBLE_C_L = new StringKey("CopilotLeft Rumble Queue", "");
-
-  public static final DoubleKey IO_POSE_X = new DoubleKey("Pose X", 0.0);
-  public static final DoubleKey IO_POSE_Y = new DoubleKey("Pose Y", 0.0);
-  public static final DoubleKey IO_POSE_R = new DoubleKey("Pose Rotation", 0.0);
-  public static final StringKey IO_AUTO = new StringKey("Auto String", "");
-
-  public static final DoubleKey IO_CORALSPEED_F = new DoubleKey("Coral Roller Forward Speed", Constants.Coral.forwardSpeed);
-  public static final DoubleKey IO_CORALSPEED_R = new DoubleKey("Coral Roller Reverse Speed", Constants.Coral.reverseSpeed);
-  public static final DoubleKey IO_ALGAESPEED_F = new DoubleKey("Algae Roller Forward Speed", Constants.Algae.forwardSpeed);
-  public static final DoubleKey IO_ALGAESPEED_R = new DoubleKey("Algae Roller Reverse Speed", Constants.Algae.reverseSpeed);
-
-  public static final DoubleKey CORAL_ROLLER = new DoubleKey("Current Coral Roller Speed", 0);
-  public static final DoubleKey ALGAE_ROLLER = new DoubleKey("Current Algae Roller Speed", 0);
+  public static final DoubleKey  RUMBLE_DRIVER    = new DoubleKey("Driver Rumble", Constants.RumblerConstants.driverDefault);
+  public static final DoubleKey  RUMBLE_OPERATOR  = new DoubleKey("Operator Rumble", Constants.RumblerConstants.operatorDefault);
 
   static
   {
-    for 
-    (
-      Initable key : 
-      Set.of
-      (
-        IO_POSE_X,
-        IO_POSE_Y,
-        IO_POSE_R,
-        IO_GEOFENCE,
-        IO_AUTO,
-        IO_CORALSPEED_F,
-        IO_CORALSPEED_R
-      )
-    )
-    {
-      key.init();
-    }
+    try {
+      Class<?> thisClass = Class.forName("frc.robot.util.SD");
+      var fields = thisClass.getFields();
+      for (var field : fields)
+      {
+        if (field.get(null) instanceof Key key)
+        {
+          key.init();
+        }
+      }
+    } catch (Exception e) {/* This will verifiably never happen */}
   }
 
   public static void initSwerveDisplay(CommandSwerveDrivetrain s_Swerve)
@@ -102,14 +72,18 @@ public class SD
     );
   }
 
-  public interface Initable
+  private interface Key<T>
   {
+    public T get();
+
+    public void put(T value);
+
     public void init();
   }
 
-  public record BooleanKey (String label, boolean defaultValue) implements Initable
+  public record BooleanKey (String label, boolean defaultValue) implements Key<Boolean>
   {
-    public boolean get() {return SmartDashboard.getBoolean(label, defaultValue);}
+    public Boolean get() {return SmartDashboard.getBoolean(label, defaultValue);}
 
     public boolean button() 
     {
@@ -124,19 +98,19 @@ public class SD
 
     public void init() {SmartDashboard.putBoolean(label, defaultValue);}
 
-    public void put(boolean value) {SmartDashboard.putBoolean(label, value);}
+    public void put(Boolean value) {SmartDashboard.putBoolean(label, value);}
   }
 
-  public record DoubleKey (String label, double defaultValue) implements Initable
+  public record DoubleKey (String label, double defaultValue) implements Key<Double>
   {
     public Double get() {return SmartDashboard.getNumber(label, defaultValue);}
 
     public void init() {SmartDashboard.putNumber(label, defaultValue);}
 
-    public void put(double value) {SmartDashboard.putNumber(label, value);}
+    public void put(Double value) {SmartDashboard.putNumber(label, value);}
   }
 
-  public record StringKey (String label, String defaultValue) implements Initable
+  public record StringKey (String label, String defaultValue) implements Key<String>
   {
     public String get() {return SmartDashboard.getString(label, defaultValue);}
 

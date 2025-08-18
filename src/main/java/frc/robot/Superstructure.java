@@ -1,8 +1,5 @@
 package frc.robot;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
-import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
-
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -18,28 +15,20 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.swerve.HeadingLockedDrive;
-import frc.robot.commands.swerve.ManualDrive;
-import frc.robot.commands.swerve.TargetScoreDrive;
-import frc.robot.commands.swerve.TargetStationDrive;
-import frc.robot.constants.Constants;
-import frc.robot.subsystems.vision.Vision;
-import frc.robot.constants.FieldConstants;
-import frc.robot.constants.TunerConstants;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.CoralRoller;
-import frc.robot.subsystems.RumbleRequester;
-import frc.robot.subsystems.vision.Limelight;
+
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
+
+import frc.robot.commands.swerve.*;
+import frc.robot.constants.*;
+import frc.robot.subsystems.*;
+import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.Limelight.TagPOI;
 import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;
-import frc.robot.util.Telemetry;
-import frc.robot.util.controlTransmutation.Brake;
-import frc.robot.util.controlTransmutation.Deadband;
-import frc.robot.util.controlTransmutation.FieldObject;
-import frc.robot.util.controlTransmutation.InputCurve;
-import frc.robot.util.controlTransmutation.JoystickTransmuter;
+import frc.robot.util.controlTransmutation.*;
+import frc.robot.util.libs.Telemetry;
 
 public class Superstructure 
 {
@@ -49,28 +38,26 @@ public class Superstructure
   private static boolean rotationKnown = false;
   private static boolean useLimelights = true;
   private static boolean useFence = true;
-  private static boolean useRestrictors = true;
   private boolean redAlliance;
 
-  
   private SwerveDriveState swerveState;
   private Field2d field;
   
-  private final Telemetry logger;
+  private final Telemetry ctreLogger;
   
   private final CommandSwerveDrivetrain s_Swerve;
   private final CoralRoller s_Coral;
   private final Vision s_Vision;
   
-  private static TargetPosition currentTarget;
-  private static DriveState currentDriveState;
+  private TargetPosition currentTarget;
+  private DriveState currentDriveState;
 
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController operator = new CommandXboxController(1);
-  private final RumbleRequester io_driverRight   = new RumbleRequester(driver, RumbleType.kRightRumble, SD.RUMBLE_D_R::put, SD.IO_RUMBLE_D::get);
-  private final RumbleRequester io_driverLeft    = new RumbleRequester(driver, RumbleType.kLeftRumble, SD.RUMBLE_D_L::put, SD.IO_RUMBLE_D::get);
-  private final RumbleRequester io_copilotRight  = new RumbleRequester(operator, RumbleType.kRightRumble, SD.RUMBLE_C_R::put, SD.IO_RUMBLE_C::get);
-  private final RumbleRequester io_copilotLeft   = new RumbleRequester(operator, RumbleType.kLeftRumble, SD.RUMBLE_C_L::put, SD.IO_RUMBLE_C::get);
+  private final RumbleRequester io_driverRight   = new RumbleRequester(driver, RumbleType.kRightRumble, SD.RUMBLE_DRIVER::get);
+  private final RumbleRequester io_driverLeft    = new RumbleRequester(driver, RumbleType.kLeftRumble, SD.RUMBLE_DRIVER::get);
+  private final RumbleRequester io_operatorRight  = new RumbleRequester(operator, RumbleType.kRightRumble, SD.RUMBLE_OPERATOR::get);
+  private final RumbleRequester io_operatorLeft   = new RumbleRequester(operator, RumbleType.kLeftRumble, SD.RUMBLE_OPERATOR::get);
   
   private final JoystickTransmuter driverStick = new JoystickTransmuter(driver::getLeftY, driver::getLeftX).invertX().invertY();
   private final Brake driverBrake = new Brake(driver::getRightTriggerAxis, Constants.Control.maxThrottle, Constants.Control.minThrottle);
@@ -84,7 +71,7 @@ public class Superstructure
     s_Coral = new CoralRoller();
     s_Vision = new Vision(this::applyVisionEstimate, () -> Pair.of(getYaw(), swerveState.Speeds.omegaRadiansPerSecond), new Limelight("limelight-fore"), new Limelight("limelight-aft"));
 
-    logger = new Telemetry(Constants.Swerve.maxSpeed);
+    ctreLogger = new Telemetry(Constants.Swerve.maxSpeed);
 
     redAlliance = FieldUtils.isRedAlliance();
 
@@ -95,9 +82,10 @@ public class Superstructure
 
     SmartDashboard.putData("Field", field);
 
-    s_Swerve.registerTelemetry(logger::telemeterize);
+    s_Swerve.registerTelemetry(ctreLogger::telemeterize);
     driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake).withInputCurve(driverInputCurve).withDeadband(driverDeadband);
     FieldConstants.GeoFencing.fieldGeoFence.setActiveCondition(() -> useFence && useLimelights);
+    FieldConstants.GeoFencing.configureAttractors((testTarget, testState) -> currentTarget == testTarget && currentDriveState == testState);
     FieldObject.setRobotRadiusSup(this::robotRadiusSup);
     FieldObject.setRobotPosSup(this::getPosition);
 
@@ -134,7 +122,9 @@ public class Superstructure
       )
     );
 
-    new Trigger(() -> {return currentDriveState == DriveState.None;})
+    s_Coral.setDefaultCommand(s_Coral.setSpeedCommand(0));
+
+    new Trigger(() -> currentDriveState == DriveState.None)
       .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.REEF)))
       .whileTrue
       (
@@ -147,7 +137,7 @@ public class Superstructure
         )
       );
 
-    new Trigger(() -> {return currentDriveState == DriveState.Reef;})
+    new Trigger(() -> currentDriveState == DriveState.Reef)
       .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.REEF)))
       .whileTrue
       (
@@ -160,7 +150,7 @@ public class Superstructure
         )
       );
 
-    new Trigger(() -> {return currentDriveState == DriveState.Station;})
+    new Trigger(() -> currentDriveState == DriveState.Station)
     .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.CORALSTATION)))
       .whileTrue
       (
@@ -173,7 +163,7 @@ public class Superstructure
         )
       );
     
-    new Trigger(() -> {return currentDriveState == DriveState.Barge;})
+    new Trigger(() -> currentDriveState == DriveState.Barge)
       .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.BARGE)))
       .whileTrue
       (
@@ -188,8 +178,8 @@ public class Superstructure
       );
     
 
-    driver.leftTrigger().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_F.get()));
-    driver.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
+    driver.leftTrigger().whileTrue(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed));
+    driver.leftBumper().whileTrue(s_Coral.setSpeedCommand(Constants.Coral.reverseSpeed));
     //operator.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
     // Heading reset
     driver.start()
@@ -242,19 +232,19 @@ public class Superstructure
     driver.b().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
     driver.axisMagnitudeGreaterThan(Axis.kRightX.value, 0.2).onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
     
-    new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose.getTranslation())).whileTrue(s_Coral.smartRunCommand(Constants.Coral.forwardSpeed));
+    new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose.getTranslation())).whileTrue(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed));
   }
 
   private void bindRumbles()
   {
-    io_copilotLeft.addRumbleTrigger("coral held", new Trigger(s_Coral::getSensor));
-    io_copilotRight.addRumbleTrigger("ready to score" , new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose.getTranslation())));
+    io_operatorLeft.addRumbleTrigger("CoralHeld", new Trigger(s_Coral::getSensor));
+    io_operatorRight.addRumbleTrigger("ScoreReady" , new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose.getTranslation())));
   }
 
   private void bindSD()
   {
-    new Trigger(SD.IO_LL_EXPOSURE_UP::button).onTrue(Commands.runOnce(s_Vision::incrementPipeline));
-    new Trigger(SD.IO_LL_EXPOSURE_DOWN::button).onTrue(Commands.runOnce(s_Vision::decrementPipeline));
+    new Trigger(SD.LL_EXPOSURE_UP::button).onTrue(Commands.runOnce(s_Vision::incrementPipeline));
+    new Trigger(SD.LL_EXPOSURE_DOWN::button).onTrue(Commands.runOnce(s_Vision::decrementPipeline));
   }
 
   private void applyVisionEstimate(Pose2d poseEstMeters, double timestampSeconds, Matrix<N3, N1> stdDevs)
@@ -266,14 +256,11 @@ public class Superstructure
   public void periodic()
   {
     updateSwerveState();
-    
-    double yaw = getYaw();
-    SD.SENSOR_GYRO.put(yaw);
   }
 
   public Command getAutonomousCommand() 
   {
-    return AutoFactories.getCommandList(SD.IO_AUTO.get(), s_Coral, s_Swerve, () -> swerveState);
+    return AutoFactories.getCommandList(SD.AUTO_STRING.get(), s_Coral, s_Swerve, () -> swerveState);
   }
   
   public double robotRadiusSup() 
@@ -297,9 +284,6 @@ public class Superstructure
   public static boolean isRotationKnown() {return rotationKnown;}
   public static void    setRotationKnown(boolean isKnown) {rotationKnown = isKnown;}
   public static boolean isVisionActive() {return useLimelights;}
-  public static boolean isRestrictorsActive() {return useRestrictors;}
-  public static void    setYaw(double newYaw) {s_Swerve.getPigeon2().setYaw(newYaw);}
+  public void    setYaw(double newYaw) {s_Swerve.getPigeon2().setYaw(newYaw);}
   public double getYaw() {return s_Swerve.getPigeon2().getYaw().getValueAsDouble();}
-  public static boolean checkTargetPosition(TargetPosition testTargetPosition) {return testTargetPosition == currentTarget;}
-  public static boolean checkDriveState(DriveState testDriveState) {return testDriveState == currentDriveState;}
 }

@@ -10,8 +10,8 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Superstructure;
-import frc.robot.util.LimelightHelpers.PoseEstimate;
-import frc.robot.util.LimelightHelpers;
+import frc.robot.util.libs.LimelightHelpers;
+import frc.robot.util.libs.LimelightHelpers.PoseEstimate;
 
 public class Limelight  
 {  
@@ -118,8 +118,6 @@ public class Limelight
           //RobotContainer.s_Swerve.resetPose(new Pose2d(RobotContainer.swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(RobotContainer.s_Swerve.getPigeon2().getYaw().getValueAsDouble()))));
         }
       }
-
-      //omegaRps = Units.radiansToRotations(RobotContainer.swerveState.Speeds.omegaRadiansPerSecond);
     }
   }
 }

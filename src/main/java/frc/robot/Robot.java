@@ -15,7 +15,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 @Logged
-public class Robot extends TimedRobot {
+public class Robot extends TimedRobot 
+{
   private Command m_autonomousCommand;
 
   private final Superstructure superstructure;
@@ -47,12 +48,11 @@ public class Robot extends TimedRobot {
   public void disabledExit() {}
 
   @Override
-  public void autonomousInit() {
+  public void autonomousInit() 
+  {
     m_autonomousCommand = superstructure.getAutonomousCommand();
 
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
-    }
+    if (m_autonomousCommand != null) m_autonomousCommand.schedule();
   }
 
   @Override
@@ -62,10 +62,9 @@ public class Robot extends TimedRobot {
   public void autonomousExit() {}
 
   @Override
-  public void teleopInit() {
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
-    }
+  public void teleopInit() 
+  {
+    if (m_autonomousCommand != null) m_autonomousCommand.cancel();
   }
 
   @Override
@@ -75,7 +74,8 @@ public class Robot extends TimedRobot {
   public void teleopExit() {}
 
   @Override
-  public void testInit() {
+  public void testInit() 
+  {
     CommandScheduler.getInstance().cancelAll();
   }
 
