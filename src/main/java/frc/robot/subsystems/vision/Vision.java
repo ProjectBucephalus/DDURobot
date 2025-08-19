@@ -21,77 +21,74 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.robot.Superstructure;
-import frc.robot.constants.Constants;
-import frc.robot.subsystems.vision.Limelight.TagPOI;
 import frc.robot.util.SD;
 import frc.robot.util.libs.LimelightHelpers;
+import static frc.robot.constants.Constants.Vision.*;
 
 public class Vision extends SubsystemBase 
 {
-  private final PoseEstimateConsumer consumer;
-  private final Supplier<Pair<Double, Double>> rotationData;
+  public enum TagPOI {REEF, BARGE, PROCESSOR, CORALSTATION}
+  
+  private final PoseEstimateConsumer estimateConsumer;
+  private final Supplier<Pair<Double, Double>> rotationDataSup;
   private final Limelight[] lls;
 
-  private int[] validIDs = Constants.Vision.reefIDs;
   private int pipelineIndex = (int)SD.LL_EXPOSURE.defaultValue();
 
   private ArrayList<Double> rotationBuf = new ArrayList<Double>();
+  private boolean rotationKnown = false;
   private boolean lastCycleRotationKnown = false;
-  private final int mt1CyclesNeeded = 10;
 
   /** Creates a new Vision. */
-  public Vision(PoseEstimateConsumer consumer, Supplier<Pair<Double, Double>> rotationData, Limelight... lls) 
+  public Vision(PoseEstimateConsumer estimateConsumer, Supplier<Pair<Double, Double>> rotationDataSup, Limelight... lls) 
   {
-    this.consumer = consumer;
-    this.rotationData = rotationData;
+    this.estimateConsumer = estimateConsumer;
+    this.rotationDataSup = rotationDataSup;
     this.lls = lls;
+    setActivePOI(TagPOI.REEF);
   }
 
   public void setActivePOI(TagPOI activePOI) 
   {
-    validIDs =
-    switch (activePOI) 
+    var validIDs = switch (activePOI) 
     {
-      case REEF -> Constants.Vision.reefIDs;
-      case BARGE -> Constants.Vision.bargeIDs;
-      case CORALSTATION, PROCESSOR -> Constants.Vision.humanPlayerStationIDs;
-      default -> Constants.Vision.reefIDs;
+      case REEF -> reefIDs;
+      case BARGE -> bargeIDs;
+      case CORALSTATION, PROCESSOR -> humanPlayerStationIDs;
+      default -> reefIDs;
     };
+
+    for (var ll : lls) ll.updateValidIDs(validIDs);
   }
 
   public void incrementPipeline() 
   {
     pipelineIndex = MathUtil.clamp(pipelineIndex + 1, 0, 7);
     for (var ll : lls) {ll.updatePipeline(pipelineIndex);}
-    SD.LL_EXPOSURE.put(pipelineIndex);
+    SD.LL_EXPOSURE.put((double)pipelineIndex);
   }
 
   public void decrementPipeline()
   {
     pipelineIndex = MathUtil.clamp(pipelineIndex - 1, 0, 7);
     for (var ll : lls) {ll.updatePipeline(pipelineIndex);}
-    SD.LL_EXPOSURE.put(pipelineIndex);
+    SD.LL_EXPOSURE.put((double)pipelineIndex);
   }
 
   @Override
   public void periodic() 
   {
-    for (var ll : lls)
-    {    
-      ll.updateValidIDs(validIDs);
-    } 
-
     if (SD.LL_TOGGLE.get()) 
     {
       for (var ll : lls)
       {
-        var rotationVals = rotationData.get();
-        double heading = rotationVals.getFirst();
-        double omegaRps = rotationVals.getSecond();
+        var rotationData = rotationDataSup.get();
+        double heading = rotationData.getFirst();
+        double omegaRps = rotationData.getSecond();
 
         var mt2 = ll.getMT2(heading);
-        //mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
         
         boolean useUpdate = !(mt2 == null || mt2.tagCount == 0 || omegaRps > 2.0);
         
@@ -99,47 +96,53 @@ public class Vision extends SubsystemBase
         {
           double stdDevFactor = Math.pow(mt2.avgTagDist, 2.0) / mt2.tagCount;
 
-          double linearStdDev = Constants.Vision.linearStdDevBaseline * stdDevFactor;
-          double rotStdDev = Constants.Vision.rotStdDevBaseline * stdDevFactor;
+          double linearStdDev = linearStdDevBaseline * stdDevFactor;
+          double rotStdDev = rotStdDevBaseline * stdDevFactor;
 
-          consumer.accept(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds), VecBuilder.fill(linearStdDev, linearStdDev, rotStdDev));
+          estimateConsumer.accept(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds), VecBuilder.fill(linearStdDev, linearStdDev, rotStdDev));
         }
       }
     }
 
     if (Superstructure.isVisionActive())
     {
-      boolean rotationKnown = Superstructure.isRotationKnown();
+      rotationKnown = Superstructure.isRotationKnown();
 
       if (!rotationKnown) 
       {
         lastCycleRotationKnown = false;
-        if (!getLimelightRotation().equals(Rotation2d.kZero))
+
+        for (var ll : lls) 
         {
-          rotationBuf.add(0, getLimelightRotation().getDegrees());
-    
-          if (rotationBuf.size() > mt1CyclesNeeded)
-            {rotationBuf.remove(mt1CyclesNeeded);}
-    
-          if (rotationBuf.size() == mt1CyclesNeeded)
-          {
-            double lowest = rotationBuf.get(0).doubleValue();
-            double highest = rotationBuf.get(0).doubleValue();
-            
-            for(int i = 1; i < mt1CyclesNeeded; i++)
+          ll.getLimelightRotation().ifPresent
+          (
+            rotationReading ->
             {
-              lowest = Math.min(lowest, rotationBuf.get(i).doubleValue());
-              highest = Math.max(highest, rotationBuf.get(i).doubleValue());
+              rotationBuf.add(0, rotationReading.getDegrees());
+      
+              if (rotationBuf.size() > mt1CyclesNeeded)
+                {rotationBuf.remove(mt1CyclesNeeded);}
+        
+              if (rotationBuf.size() == mt1CyclesNeeded)
+              {
+                double lowest = rotationBuf.get(0).doubleValue();
+                double highest = rotationBuf.get(0).doubleValue();
+                
+                for(var reading : rotationBuf)
+                {
+                  lowest = Math.min(lowest, reading.doubleValue());
+                  highest = Math.max(highest, reading.doubleValue());
+                }
+                
+                if (highest - lowest < 1)
+                {
+                  rotationKnown = true;
+                  Superstructure.setRotationKnown(true);
+                  Superstructure.setYaw((highest + lowest) / 2);
+                }
+              }
             }
-            
-            if (highest - lowest < 1)
-            {
-              rotationKnown = true;
-              Superstructure.setRotationKnown(true);
-              //SmartDashboard.putNumber("limelight " + limelightName + " average rotation reading", (highest + lowest) / 2);
-              Superstructure.setYaw((highest + lowest) / 2);
-            }
-          }
+          );
         }
       }
 

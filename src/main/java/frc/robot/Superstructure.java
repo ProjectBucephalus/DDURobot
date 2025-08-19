@@ -23,7 +23,7 @@ import frc.robot.commands.swerve.*;
 import frc.robot.constants.*;
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.vision.*;
-import frc.robot.subsystems.vision.Limelight.TagPOI;
+import frc.robot.subsystems.vision.Vision.TagPOI;
 import frc.robot.util.AutoFactories;
 import frc.robot.util.FieldUtils;
 import frc.robot.util.SD;

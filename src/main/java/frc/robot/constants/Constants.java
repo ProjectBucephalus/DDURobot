@@ -70,12 +70,6 @@ public final class Constants
     public static final double reverseSpeed = 0.15;
   }
 
-  public static final class Algae
-  {
-    public static final double forwardSpeed = 0.5;
-    public static final double reverseSpeed = -0.5;
-  }
-
   public static final class Vision
   {
     /* public static final int[] validIDs = 
@@ -112,5 +106,7 @@ public final class Constants
     public static final double linearStdDevBaseline = 0.08;
     /** Baseline 1 meter, 1 tag stddev rotation, in radians */
     public static final double rotStdDevBaseline = 999;
+    /** How many good MT1 readings to get before setting rotation and moving to MT2 */
+    public static final int mt1CyclesNeeded = 10;
   }
 }
