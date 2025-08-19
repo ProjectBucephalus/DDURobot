@@ -28,15 +28,11 @@ public class SD
 
   static
   {
-    try {
-      Class<?> thisClass = Class.forName("frc.robot.util.SD");
-      var fields = thisClass.getFields();
-      for (var field : fields)
+    try 
+    {
+      for (var field : SD.class.getFields())
       {
-        if (field.get(null) instanceof Key key)
-        {
-          key.init();
-        }
+        if (field.get(null) instanceof Key key) key.init();
       }
     } catch (Exception e) {/* This will verifiably never happen */}
   }
