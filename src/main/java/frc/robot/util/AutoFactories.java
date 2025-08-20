@@ -55,7 +55,7 @@ public class AutoFactories
           new Rotation2d(Units.degreesToRadians(Double.parseDouble(splitCommand.substring(splitCommand.indexOf(";"))))) : 
           swerveStateSup.get().Pose.getRotation().plus(Rotation2d.k180deg);
           
-          commandList.add(s_Swerve.poseLockDriveCommand(new AlliancePose2dSup(posTarget, rotationTarget), swerveStateSup));
+          commandList.add(s_Swerve.poseDriveCommand(new AlliancePose2dSup(posTarget, rotationTarget), swerveStateSup));
         }
 
         case 'w' -> commandList.add(Commands.waitSeconds(Double.parseDouble(splitCommand.substring(1))));
@@ -68,14 +68,14 @@ public class AutoFactories
 
         case 'r' ->
 				{
-          commandList.add(s_Swerve.poseLockDriveCommand(new AlliancePose2dSup(FieldConstants.getLineup(splitCommand)), swerveStateSup));
+          commandList.add(s_Swerve.poseDriveCommand(new AlliancePose2dSup(FieldConstants.getLineup(splitCommand)), swerveStateSup));
           commandList.add(Commands.waitSeconds(0.1));
           commandList.add(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed).until(s_Coral::getSensor));
         }
 
         case 'c' ->
 				{
-          commandList.add(s_Swerve.poseLockDriveCommand(new AlliancePose2dSup(FieldConstants.getLineup(splitCommand)), swerveStateSup));
+          commandList.add(s_Swerve.poseDriveCommand(new AlliancePose2dSup(FieldConstants.getLineup(splitCommand)), swerveStateSup));
           commandList.add(Commands.waitUntil(s_Coral::getSensor));
         }
       }

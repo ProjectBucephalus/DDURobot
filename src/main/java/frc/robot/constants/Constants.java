@@ -33,7 +33,10 @@ public final class Constants
     public static final double manualClimberScale = 1;
     public static final double driveSnappingRange = 1.5;
     public static final double cageFaceDistance = 1.5;
+    /** Translation lineup tolerance, in meters */
     public static final double lineupTolerance = 0.05;
+    /** Rotation lineup tolerance, in degrees */
+    public static final double angleLineupTolerance = 1.5;
   }
 
   public static final class Swerve

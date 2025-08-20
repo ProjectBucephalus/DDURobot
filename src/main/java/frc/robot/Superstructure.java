@@ -232,13 +232,13 @@ public class Superstructure
     driver.b().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
     driver.axisMagnitudeGreaterThan(Axis.kRightX.value, 0.2).onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
     
-    new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose.getTranslation())).whileTrue(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed));
+    new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose)).whileTrue(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed));
   }
 
   private void bindRumbles()
   {
     io_operatorLeft.addRumbleTrigger("CoralHeld", new Trigger(s_Coral::getSensor));
-    io_operatorRight.addRumbleTrigger("ScoreReady" , new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose.getTranslation())));
+    io_operatorRight.addRumbleTrigger("ScoreReady" , new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose)));
   }
 
   private void bindSD()
