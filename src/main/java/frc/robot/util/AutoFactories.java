@@ -39,7 +39,8 @@ public class AutoFactories
     {
       switch (splitCommand.charAt(0)) 
       {
-        case 'g':
+        case 'g' ->
+				{
           int seperatorIndex = splitCommand.indexOf(":");
           
           Translation2d posTarget = 
@@ -55,31 +56,28 @@ public class AutoFactories
           swerveStateSup.get().Pose.getRotation().plus(Rotation2d.k180deg);
           
           commandList.add(s_Swerve.poseLockDriveCommand(new AlliancePose2dSup(posTarget, rotationTarget), swerveStateSup));
-          break;
+        }
 
-        case 'w':
-          commandList.add(Commands.waitSeconds(Double.parseDouble(splitCommand.substring(1))));
-          break;
+        case 'w' -> commandList.add(Commands.waitSeconds(Double.parseDouble(splitCommand.substring(1))));
 
-        case 't':
+        case 't' ->
+				{
           double targetMatchTimeElapsed = Double.parseDouble(splitCommand.substring(1));
-
           commandList.add(Commands.waitUntil(() -> Timer.getMatchTime() < (15 - targetMatchTimeElapsed)));
-          break;
+        }
 
-        case 'r':
+        case 'r' ->
+				{
           commandList.add(s_Swerve.poseLockDriveCommand(new AlliancePose2dSup(FieldConstants.getLineup(splitCommand)), swerveStateSup));
           commandList.add(Commands.waitSeconds(0.1));
           commandList.add(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed).until(s_Coral::getSensor));
-          break;
+        }
 
-        case 'c':
+        case 'c' ->
+				{
           commandList.add(s_Swerve.poseLockDriveCommand(new AlliancePose2dSup(FieldConstants.getLineup(splitCommand)), swerveStateSup));
           commandList.add(Commands.waitUntil(s_Coral::getSensor));
-          break;
-      
-        default:
-          break;
+        }
       }
     }
 

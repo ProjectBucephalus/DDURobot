@@ -68,8 +68,10 @@ public class SD
     );
   }
 
-  private interface Key<T>
+  private interface Key<T> extends Supplier<T>, Consumer<T>
   {
+    public void accept(T value) {put(value);}
+
     public T get();
 
     public void put(T value);
