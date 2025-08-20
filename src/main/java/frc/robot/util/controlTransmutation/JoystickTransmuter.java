@@ -41,7 +41,7 @@ public class JoystickTransmuter extends InputTransmuter
     brake = new Brake();
     fieldObjectList = new ObjectList();
 
-    stickOutputSup = () -> stickOutput();
+    stickOutputSup = this::stickOutput;
   }
 
   /**

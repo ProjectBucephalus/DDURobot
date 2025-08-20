@@ -77,6 +77,8 @@ public class Vision extends SubsystemBase
     SD.LL_EXPOSURE.put((double)pipelineIndex);
   }
 
+  public void resetRotation() {rotationKnown = false;}
+
   @Override
   public void periodic() 
   {
@@ -104,47 +106,43 @@ public class Vision extends SubsystemBase
       }
     }
 
-    if (Superstructure.isVisionActive())
+    if (!rotationKnown) 
     {
-      rotationKnown = Superstructure.isRotationKnown();
+      lastCycleRotationKnown = false;
 
-      if (!rotationKnown) 
+      for (var ll : lls) 
       {
-        lastCycleRotationKnown = false;
-
-        for (var ll : lls) 
-        {
-          ll.getLimelightRotation().ifPresent
-          (
-            rotationReading ->
-            {
-              rotationBuf.add(0, rotationReading.getDegrees());
+        ll.getLimelightRotation().ifPresent
+        (
+          rotationReading ->
+          {
+            rotationBuf.add(0, rotationReading.getDegrees());
+    
+            if (rotationBuf.size() > mt1CyclesNeeded)
+              {rotationBuf.remove(mt1CyclesNeeded);}
       
-              if (rotationBuf.size() > mt1CyclesNeeded)
-                {rotationBuf.remove(mt1CyclesNeeded);}
-        
-              if (rotationBuf.size() == mt1CyclesNeeded)
+            if (rotationBuf.size() == mt1CyclesNeeded)
+            {
+              double lowest = rotationBuf.get(0).doubleValue();
+              double highest = rotationBuf.get(0).doubleValue();
+              
+              for(var reading : rotationBuf)
               {
-                double lowest = rotationBuf.get(0).doubleValue();
-                double highest = rotationBuf.get(0).doubleValue();
-                
-                for(var reading : rotationBuf)
-                {
-                  lowest = Math.min(lowest, reading.doubleValue());
-                  highest = Math.max(highest, reading.doubleValue());
-                }
-                
-                if (highest - lowest < 1)
-                {
-                  rotationKnown = true;
-                  Superstructure.setRotationKnown(true);
-                  Superstructure.setYaw((highest + lowest) / 2);
-                }
+                lowest = Math.min(lowest, reading.doubleValue());
+                highest = Math.max(highest, reading.doubleValue());
+              }
+              
+              if (highest - lowest < 1)
+              {
+                rotationKnown = true;
+                Superstructure.setRotationKnown(true);
+                Superstructure.setYaw((highest + lowest) / 2);
               }
             }
-          );
-        }
+          }
+        );
       }
+      
 
       if (!lastCycleRotationKnown) 
       {

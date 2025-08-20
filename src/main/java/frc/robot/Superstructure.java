@@ -1,12 +1,7 @@
 package frc.robot;
 
-import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Pair;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -16,11 +11,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
 import frc.robot.commands.swerve.*;
 import frc.robot.constants.*;
+import static frc.robot.constants.FieldConstants.*;
+import static frc.robot.constants.FieldConstants.GeoFencing.*;
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.Vision.TagPOI;
@@ -35,30 +31,41 @@ public class Superstructure
   public enum TargetPosition {Left, Right, Centre, None}
   public enum DriveState {Reef, Station, Barge, None}
   
-  private static boolean rotationKnown = false;
-  private static boolean useLimelights = true;
-  private static boolean useFence = true;
-  private boolean redAlliance;
-
+  /* State */
   private SwerveDriveState swerveState;
-  private Field2d field;
-  
-  private final Telemetry ctreLogger;
-  
-  private final CommandSwerveDrivetrain s_Swerve;
-  private final CoralRoller s_Coral;
-  private final Vision s_Vision;
-  
   private TargetPosition currentTarget;
   private DriveState currentDriveState;
 
+  /* Telemetry and SD */
+  private Field2d field = new Field2d();
+  private final Telemetry ctreLogger = new Telemetry(Constants.Swerve.maxSpeed);
+  
+  /* Subsystems */
+  private final CommandSwerveDrivetrain s_Swerve = TunerConstants.createDrivetrain();
+  private final CoralRoller s_Coral = new CoralRoller();
+  private final Vision s_Vision = new Vision
+    (
+      (poseEst, timestmp, stdDevs) -> 
+      {
+        s_Swerve.setVisionMeasurementStdDevs(stdDevs); 
+        s_Swerve.addVisionMeasurement(poseEst, timestmp);
+      },
+      () -> Pair.of(s_Swerve.getPigeon2().getYaw().getValueAsDouble(), swerveState.Speeds.omegaRadiansPerSecond), 
+      new Limelight("limelight-fore"), 
+      new Limelight("limelight-aft")
+    );
+
+  /* Controllers */
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController operator = new CommandXboxController(1);
+
+  /* Rumble */
   private final RumbleRequester io_driverRight   = new RumbleRequester(driver, RumbleType.kRightRumble, SD.RUMBLE_DRIVER);
   private final RumbleRequester io_driverLeft    = new RumbleRequester(driver, RumbleType.kLeftRumble, SD.RUMBLE_DRIVER);
   private final RumbleRequester io_operatorRight  = new RumbleRequester(operator, RumbleType.kRightRumble, SD.RUMBLE_OPERATOR);
   private final RumbleRequester io_operatorLeft   = new RumbleRequester(operator, RumbleType.kLeftRumble, SD.RUMBLE_OPERATOR);
   
+  /* Input Transmutation */
   private final JoystickTransmuter driverStick = new JoystickTransmuter(driver::getLeftY, driver::getLeftX).invertX().invertY();
   private final Brake driverBrake = new Brake(driver::getRightTriggerAxis, Constants.Control.maxThrottle, Constants.Control.minThrottle);
   private final InputCurve driverInputCurve = new InputCurve(2);
@@ -66,51 +73,43 @@ public class Superstructure
 
   public Superstructure()
   {
-    field = new Field2d();
-    s_Swerve = TunerConstants.createDrivetrain();
-    s_Coral = new CoralRoller();
-    s_Vision = new Vision(this::applyVisionEstimate, () -> Pair.of(getYaw(), swerveState.Speeds.omegaRadiansPerSecond), new Limelight("limelight-fore"), new Limelight("limelight-aft"));
-
-    ctreLogger = new Telemetry(Constants.Swerve.maxSpeed);
-
-    redAlliance = FieldUtils.isRedAlliance();
-
-    setStartPose(redAlliance);
+    /* State Initialisation */
+    currentDriveState = DriveState.None;
     updateSwerveState();
-    driverStick.rotated(redAlliance);
-    FieldUtils.activateAllianceFencing();
-
+    
+    /* Telemetry and SD */
     SmartDashboard.putData("Field", field);
-
     s_Swerve.registerTelemetry(ctreLogger::telemeterize);
-    driverStick.withFieldObjects(FieldConstants.GeoFencing.fieldGeoFence).withBrake(driverBrake).withInputCurve(driverInputCurve).withDeadband(driverDeadband);
-    FieldConstants.GeoFencing.fieldGeoFence.setActiveCondition(() -> useFence && useLimelights);
+    
+    /* Configure Input Transmutation */
+    boolean redAlliance = FieldUtils.isRedAlliance();
+    driverStick.rotated(redAlliance);
+    driverStick.withFieldObjects(GeoFencing.fieldGeoFence).withBrake(driverBrake).withInputCurve(driverInputCurve).withDeadband(driverDeadband);
+    FieldUtils.activateAllianceFencing(redAlliance);
     FieldConstants.GeoFencing.configureAttractors((testTarget, testState) -> currentTarget == testTarget && currentDriveState == testState);
-    FieldObject.setRobotRadiusSup(this::robotRadiusSup);
-    FieldObject.setRobotPosSup(this::getPosition);
+    FieldObject.setRobotRadiusSup
+      (() -> 
+        Math.hypot(swerveState.Speeds.vxMetersPerSecond, swerveState.Speeds.vyMetersPerSecond) >= robotSpeedThreshold ? 
+        robotRadiusCircumscribed : 
+        robotRadiusInscribed
+      );
+    FieldObject.setRobotPosSup(swerveState.Pose::getTranslation);
 
+    /* Bindings */
     bindControls();
     bindRumbles();
     bindSD();
   }
 
-  public SwerveDriveState getSwerveState() 
-    {return swerveState;}
-
-  public void updateSwerveState()
+  private void updateSwerveState()
   {
     swerveState = s_Swerve.getState();
     field.setRobotPose(swerveState.Pose);
   }
 
-  public Translation2d getPosition()
-  {
-    return swerveState.Pose.getTranslation();
-  }
-
   private void bindControls()
   {
-    currentDriveState = DriveState.None;
+    /* Default Commands */
     s_Swerve.setDefaultCommand
     (
       new ManualDrive
@@ -121,9 +120,26 @@ public class Superstructure
         driver::getRightTriggerAxis
       )
     );
-
     s_Coral.setDefaultCommand(s_Coral.setSpeedCommand(0));
 
+    /* Setting Drive States */
+    driver.povLeft().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
+    driver.povRight().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
+    driver.povUp().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
+    driver.povDown().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
+    
+    driver.x().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Reef));
+    driver.a().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Station));
+    driver.y().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Barge));
+    driver.b().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
+    driver.axisMagnitudeGreaterThan(Axis.kRightX.value, 0.2).onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
+    
+    /* Coral Roller */
+    driver.leftTrigger().whileTrue(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed));
+    driver.leftBumper().whileTrue(s_Coral.setSpeedCommand(Constants.Coral.reverseSpeed));
+    new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose)).whileTrue(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed));
+
+    /* Heading Locking */
     new Trigger(() -> currentDriveState == DriveState.None)
       .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.REEF)))
       .whileTrue
@@ -136,7 +152,6 @@ public class Superstructure
           driver::getRightTriggerAxis
         )
       );
-
     new Trigger(() -> currentDriveState == DriveState.Reef)
       .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.REEF)))
       .whileTrue
@@ -146,10 +161,9 @@ public class Superstructure
           s_Swerve, 
           driverStick::stickOutput,
           Rotation2d.kZero,
-          () -> getPosition()
+          swerveState.Pose::getTranslation
         )
       );
-
     new Trigger(() -> currentDriveState == DriveState.Station)
     .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.CORALSTATION)))
       .whileTrue
@@ -159,10 +173,9 @@ public class Superstructure
           s_Swerve, 
           driverStick::stickOutput,
           Rotation2d.kZero,
-          () -> getPosition()
+          swerveState.Pose::getTranslation
         )
       );
-    
     new Trigger(() -> currentDriveState == DriveState.Barge)
       .onTrue(Commands.runOnce(() -> s_Vision.setActivePOI(TagPOI.BARGE)))
       .whileTrue
@@ -173,66 +186,12 @@ public class Superstructure
           driverStick::stickOutput,
           Rotation2d.kZero,
           Rotation2d.kZero,
-          () -> getPosition()
+          swerveState.Pose::getTranslation
         )
       );
     
-
-    driver.leftTrigger().whileTrue(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed));
-    driver.leftBumper().whileTrue(s_Coral.setSpeedCommand(Constants.Coral.reverseSpeed));
-    //operator.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
-    // Heading reset
-    driver.start()
-      .onTrue
-      (
-        Commands.runOnce
-        (
-          () -> 
-          {
-            Pigeon2 pigeon = s_Swerve.getPigeon2();
-
-            pigeon.setYaw(redAlliance ? 0 : 180);
-            s_Swerve.resetPose(new Pose2d(swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(pigeon.getYaw().getValueAsDouble()))));
-            FieldUtils.activateAllianceFencing();
-            rotationKnown = false;
-            useLimelights = true;
-          }
-        )
-        .ignoringDisable(true)
-        .withName("HeadingReset")
-      );
-    driver.back()
-      .onTrue
-      (
-        Commands.runOnce
-        (
-          () -> 
-          {
-            Pigeon2 pigeon = s_Swerve.getPigeon2();
-
-            pigeon.setYaw(redAlliance ? 0 : 180);
-            s_Swerve.resetPose(new Pose2d(swerveState.Pose.getTranslation(), new Rotation2d(Math.toRadians(pigeon.getYaw().getValueAsDouble()))));
-            FieldUtils.activateAllianceFencing();
-            rotationKnown = false;
-            useLimelights = false;
-          }
-        )
-        .ignoringDisable(true)
-        .withName("DisableNavigation")
-      );
-    
-    driver.povLeft().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
-    driver.povRight().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
-    driver.povUp().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
-    driver.povDown().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
-
-    driver.x().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Reef));
-    driver.a().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Station));
-    driver.y().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Barge));
-    driver.b().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
-    driver.axisMagnitudeGreaterThan(Axis.kRightX.value, 0.2).onTrue(Commands.runOnce(() -> currentDriveState = DriveState.None));
-    
-    new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose)).whileTrue(s_Coral.setSpeedCommand(Constants.Coral.forwardSpeed));
+    /* Other */
+    driver.start().onTrue(Commands.runOnce(s_Vision::resetRotation).ignoringDisable(true));
   }
 
   private void bindRumbles()
@@ -247,12 +206,6 @@ public class Superstructure
     new Trigger(SD.LL_EXPOSURE_DOWN::button).onTrue(Commands.runOnce(s_Vision::decrementPipeline));
   }
 
-  private void applyVisionEstimate(Pose2d poseEstMeters, double timestampSeconds, Matrix<N3, N1> stdDevs)
-  {
-    s_Swerve.setVisionMeasurementStdDevs(stdDevs);
-    s_Swerve.addVisionMeasurement(poseEstMeters, timestampSeconds);
-  }
-
   public void periodic()
   {
     updateSwerveState();
@@ -262,28 +215,6 @@ public class Superstructure
   {
     return AutoFactories.getCommandList(SD.AUTO_STRING.get(), s_Coral, s_Swerve, () -> swerveState);
   }
-  
-  public double robotRadiusSup() 
-  {
-    double robotSpeed = Math.hypot(swerveState.Speeds.vxMetersPerSecond, swerveState.Speeds.vyMetersPerSecond);
 
-    return
-    robotSpeed >= FieldConstants.GeoFencing.robotSpeedThreshold ?
-    FieldConstants.GeoFencing.robotRadiusCircumscribed :
-    FieldConstants.GeoFencing.robotRadiusInscribed;
-  }
-
-  private void setStartPose(boolean isRedAlliance)
-  {
-    if (isRedAlliance)
-      {s_Swerve.resetPose(FieldConstants.redStartLine);}
-    else
-      {s_Swerve.resetPose(FieldConstants.blueStartLine);}
-  }
-
-  public static boolean isRotationKnown() {return rotationKnown;}
-  public static void    setRotationKnown(boolean isKnown) {rotationKnown = isKnown;}
-  public static boolean isVisionActive() {return useLimelights;}
-  public void    setYaw(double newYaw) {s_Swerve.getPigeon2().setYaw(newYaw);}
-  public double getYaw() {return s_Swerve.getPigeon2().getYaw().getValueAsDouble();}
+  public void setYaw(double newYaw) {s_Swerve.getPigeon2().setYaw(newYaw);}
 }

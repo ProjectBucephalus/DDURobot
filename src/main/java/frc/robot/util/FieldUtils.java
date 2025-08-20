@@ -1,7 +1,6 @@
 package frc.robot.util;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -17,7 +16,7 @@ public class FieldUtils
 {
   public static boolean isRedAlliance() 
   {
-    Optional<Alliance> alliance = DriverStation.getAlliance();
+    var alliance = DriverStation.getAlliance();
     return alliance.isPresent() && alliance.get() == Alliance.Red;
   }
 
@@ -60,18 +59,10 @@ public class FieldUtils
     return pose;
   }
 
-  public static void activateAllianceFencing() 
+  public static void activateAllianceFencing(boolean redAlliance) 
   {
-    if (isRedAlliance())
-    {
-      GeoFencing.fieldRedGeoFence.setActiveCondition(() -> true);
-      GeoFencing.fieldBlueGeoFence.setActiveCondition(() -> false);
-    } 
-    else
-    {
-      GeoFencing.fieldBlueGeoFence.setActiveCondition(() -> true);
-      GeoFencing.fieldRedGeoFence.setActiveCondition(() -> false);
-    }
+    GeoFencing.fieldRedGeoFence.setActiveCondition(() -> redAlliance);
+    GeoFencing.fieldBlueGeoFence.setActiveCondition(() -> !redAlliance);
   }
 
   public static int getNearestReefFaceAllianceLocked(Translation2d robotPos)
