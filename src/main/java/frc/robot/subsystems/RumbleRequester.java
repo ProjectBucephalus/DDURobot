@@ -1,7 +1,7 @@
 package frc.robot.subsystems;
 
 import java.util.HashSet;
-import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -15,9 +15,9 @@ public class RumbleRequester extends SubsystemBase
   private HashSet<String> queue = new HashSet<String>();
   private final CommandXboxController controller;
   private final RumbleType side;
-  private final DoubleSupplier strengthSup;
+  private final Supplier<Double> strengthSup;
 
-  public RumbleRequester(CommandXboxController controller, RumbleType side, DoubleSupplier strengthSup)
+  public RumbleRequester(CommandXboxController controller, RumbleType side, Supplier<Double> strengthSup)
   {
     this.controller = controller;
     this.side = side;
@@ -51,6 +51,6 @@ public class RumbleRequester extends SubsystemBase
   @Override
   public void periodic() 
   {
-    controller.setRumble(side, queue.isEmpty() ? 0 : strengthSup.getAsDouble());
+    controller.setRumble(side, queue.isEmpty() ? 0 : strengthSup.get());
   }
 }

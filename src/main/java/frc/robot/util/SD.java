@@ -4,6 +4,9 @@
 
 package frc.robot.util;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -70,7 +73,7 @@ public class SD
 
   private interface Key<T> extends Supplier<T>, Consumer<T>
   {
-    public void accept(T value) {put(value);}
+    public default void accept(T value) {put(value);}
 
     public T get();
 
