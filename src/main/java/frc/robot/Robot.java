@@ -37,13 +37,12 @@ import frc.robot.util.SD;
 import frc.robot.util.controlTransmutation.*;
 import frc.robot.util.libs.Telemetry;
 
-
 @Logged
 public class Robot extends TimedRobot 
 {
+  /* Enums */
   public enum TargetPosition {Left, Right, Centre, None}
   public enum DriveState {Reef, Station, Barge, None}
-  
   
   /* State */
   private SwerveDriveState swerveState;
@@ -56,7 +55,7 @@ public class Robot extends TimedRobot
   private final Telemetry ctreLogger = new Telemetry(Constants.Swerve.maxSpeed);
   
   /* Subsystems */
-  private final CommandSwerveDrivetrain s_Swerve = TunerConstants.createDrivetrain();
+  private final static CommandSwerveDrivetrain s_Swerve = TunerConstants.createDrivetrain();
   private final CoralRoller s_Coral = new CoralRoller();
   private final Vision s_Vision = new Vision
     (
@@ -117,16 +116,9 @@ public class Robot extends TimedRobot
     /* Bindings */
     bindControls();
     bindRumbles();
-    bindSD();
-    
   }
 
-  private void updateSwerveState()
-  {
-    swerveState = s_Swerve.getState();
-    field.setRobotPose(swerveState.Pose);
-  }
-
+  /* Binding Methods */
   private void bindControls()
   {
     /* Default Commands */
@@ -212,6 +204,8 @@ public class Robot extends TimedRobot
     
     /* Other */
     driver.start().onTrue(Commands.runOnce(s_Vision::resetRotation).ignoringDisable(true));
+    new Trigger(SD.LL_EXPOSURE_UP::button).onTrue(Commands.runOnce(s_Vision::incrementPipeline));
+    new Trigger(SD.LL_EXPOSURE_DOWN::button).onTrue(Commands.runOnce(s_Vision::decrementPipeline));
   }
 
   private void bindRumbles()
@@ -220,14 +214,16 @@ public class Robot extends TimedRobot
     io_operatorRight.addRumbleTrigger("ScoreReady" , new Trigger(() -> FieldUtils.atReefLineUp(swerveState.Pose)));
   }
 
-  private void bindSD()
+  /* Util Methods */
+  public static void setYaw(double newYaw) {s_Swerve.getPigeon2().setYaw(newYaw);}
+
+  private void updateSwerveState()
   {
-    new Trigger(SD.LL_EXPOSURE_UP::button).onTrue(Commands.runOnce(s_Vision::incrementPipeline));
-    new Trigger(SD.LL_EXPOSURE_DOWN::button).onTrue(Commands.runOnce(s_Vision::decrementPipeline));
+    swerveState = s_Swerve.getState();
+    field.setRobotPose(swerveState.Pose);
   }
-
-  public void setYaw(double newYaw) {s_Swerve.getPigeon2().setYaw(newYaw);}
-
+  
+  /* Opmode Methods */
   @Override
   public void robotPeriodic() 
   {
