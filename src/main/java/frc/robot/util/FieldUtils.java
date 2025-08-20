@@ -1,9 +1,6 @@
 package frc.robot.util;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Optional;
-
-import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,7 +16,7 @@ public class FieldUtils
 {
   public static boolean isRedAlliance() 
   {
-    Optional<Alliance> alliance = DriverStation.getAlliance();
+    var alliance = DriverStation.getAlliance();
     return alliance.isPresent() && alliance.get() == Alliance.Red;
   }
 
@@ -62,18 +59,10 @@ public class FieldUtils
     return pose;
   }
 
-  public static void activateAllianceFencing() 
+  public static void activateAllianceFencing(boolean redAlliance) 
   {
-    if (isRedAlliance())
-    {
-      GeoFencing.fieldRedGeoFence.setActiveCondition(() -> true);
-      GeoFencing.fieldBlueGeoFence.setActiveCondition(() -> false);
-    } 
-    else
-    {
-      GeoFencing.fieldBlueGeoFence.setActiveCondition(() -> true);
-      GeoFencing.fieldRedGeoFence.setActiveCondition(() -> false);
-    }
+    GeoFencing.fieldRedGeoFence.setActiveCondition(() -> redAlliance);
+    GeoFencing.fieldBlueGeoFence.setActiveCondition(() -> !redAlliance);
   }
 
   public static int getNearestReefFaceAllianceLocked(Translation2d robotPos)
@@ -114,22 +103,13 @@ public class FieldUtils
     northHalf ? GeoFencing.cornerNBlue : GeoFencing.cornerSBlue;
   }
 
-  public static PathPlannerPath loadPath(String pathName) 
-  {
-    try {
-      PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
-      return path;
-    } catch (Exception e) {
-      DriverStation.reportError(String.format("Unable to load path: %s", pathName), true);
-    }
-    return null;
-  }
+  public static boolean atReefLineUp(Pose2d robotPose)
+    {return Arrays.stream(FieldConstants.reefLineups).anyMatch(lineup -> atPose(robotPose, lineup));}
 
-  public static boolean atReefLineUp(Translation2d robotPos)
+  public static boolean atPose(Pose2d robotPose, Pose2d targetPose)
   {
-    return
-    Arrays.stream(FieldConstants.reefLineups)
-      .anyMatch(lineup -> Math.abs(lineup.getTranslation().minus(robotPos).getNorm()) < Constants.Control.lineupTolerance);
+    
+    return robotPose.getTranslation().getDistance(targetPose.getTranslation()) < Constants.Control.lineupTolerance &&
+    Math.abs(robotPose.getRotation().getDegrees() - targetPose.getRotation().getDegrees()) < Constants.Control.angleLineupTolerance;   
   }
-
 }

@@ -7,7 +7,7 @@ public final class Constants
   public static final class RumblerConstants 
   {
     public static final double driverDefault = 0.1;
-    public static final double copilotDefault = 0.1;
+    public static final double operatorDefault = 0.1;
   }
 
   public static final class Control
@@ -33,10 +33,11 @@ public final class Constants
     public static final double manualClimberScale = 1;
     public static final double driveSnappingRange = 1.5;
     public static final double cageFaceDistance = 1.5;
+    /** Translation lineup tolerance, in meters */
     public static final double lineupTolerance = 0.05;
+    /** Rotation lineup tolerance, in degrees */
+    public static final double angleLineupTolerance = 1.5;
   }
-
-  
 
   public static final class Swerve
   {
@@ -70,12 +71,6 @@ public final class Constants
   {
     public static final double forwardSpeed = -0.15;
     public static final double reverseSpeed = 0.15;
-  }
-
-  public static final class Algae
-  {
-    public static final double forwardSpeed = 0.5;
-    public static final double reverseSpeed = -0.5;
   }
 
   public static final class Vision
@@ -114,5 +109,7 @@ public final class Constants
     public static final double linearStdDevBaseline = 0.08;
     /** Baseline 1 meter, 1 tag stddev rotation, in radians */
     public static final double rotStdDevBaseline = 999;
+    /** How many good MT1 readings to get before setting rotation and moving to MT2 */
+    public static final int mt1CyclesNeeded = 10;
   }
 }

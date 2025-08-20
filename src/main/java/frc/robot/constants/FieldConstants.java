@@ -1,14 +1,14 @@
 package frc.robot.constants;
 
 import java.util.ArrayList;
+import java.util.function.BiPredicate;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.Superstructure;
-import frc.robot.Superstructure.DriveState;
-import frc.robot.Superstructure.TargetPosition;
+import frc.robot.Robot.DriveState;
+import frc.robot.Robot.TargetPosition;
 import frc.robot.util.controlTransmutation.Attractor;
 import frc.robot.util.controlTransmutation.ObjectList;
 import frc.robot.util.controlTransmutation.geoFence.*;
@@ -53,52 +53,39 @@ public class FieldConstants
 
   public static Pose2d getLineup(String name)
   {
-    switch (name) {
-      case "ra":
-        return raLineup;
-      
-      case "rb":
-        return rbLineup;
-      
-      case "rc":
-        return rcLineup;
-
-      case "rd":
-        return rdLineup;
-
-      case "re":
-        return reLineup;
-
-      case "rf":
-        return rfLineup;
-
-      case "rg":
-        return rgLineup;
-
-      case "rh":
-        return rhLineup;
-
-      case "ri":
-        return riLineup;
-
-      case "rj":
-        return rjLineup;
-
-      case "rk":
-        return rkLineup;
-
-      case "rl":
-        return rlLineup;
-    
-      default:
-        return raLineup;
-    }
+    return switch (name) 
+    {
+      case "ra" -> raLineup;
+      case "rb" -> rbLineup;
+      case "rc" -> rcLineup;
+      case "rd" -> rdLineup;
+      case "re" -> reLineup;
+      case "rf" -> rfLineup;
+      case "rg" -> rgLineup;
+      case "rh" -> rhLineup;
+      case "ri" -> riLineup;
+      case "rj" -> rjLineup;
+      case "rk" -> rkLineup;
+      case "rl" -> rlLineup;
+      default -> raLineup;
+    };
   }
 
   public static final double coralStationRange = 0.6;
 
   public static final class GeoFencing
   {   
+    /**
+     * Minimum value for object radius, metres </p>
+     * The system is not confirmed to handle negative radii
+     */
+    public static final double minRadius = 0;
+    /**
+     * Minimum value for object buffer, metres </p>
+     * A small buffer is required to ensure safe transitions
+     */
+    public static final double minBuffer = 0.1;
+
     // Relative to the centre of the robot, in direction the robot is facing
     // These values are the distance in metres to the virtual wall the robot will stop at
     // 0 means the wall is running through the middle of the robot
@@ -170,30 +157,30 @@ public class FieldConstants
     public static final Attractor testAttractor = new Attractor(fieldCentre.getX(), fieldCentre.getY(), 0, 5, 1.5);
 
     // Set up Attractors and Conditions for GeoFence objects
-    static
+    public static void configureAttractors(BiPredicate<TargetPosition, DriveState> checkTargetAndState)
     {
-      reefRed.addRelativeAttractors(0.4, -0.2, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Reef));
-      reefRed.addRelativeAttractors(0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Reef));
-      reefRed.addRelativeAttractors(0.4, 0.2, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Reef));
-      reefBlue.addRelativeAttractors(0.4, -0.2, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Reef));
-      reefBlue.addRelativeAttractors(0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Reef));
-      reefBlue.addRelativeAttractors(0.4, 0.2, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Reef));
+      reefRed.addRelativeAttractors(0.4, -0.2, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Left, DriveState.Reef)) ;
+      reefRed.addRelativeAttractors(0.4, 0, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Centre, DriveState.Reef)) ;
+      reefRed.addRelativeAttractors(0.4, 0.2, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Right, DriveState.Reef)) ;
+      reefBlue.addRelativeAttractors(0.4, -0.2, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Left, DriveState.Reef)) ;
+      reefBlue.addRelativeAttractors(0.4, 0, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Centre, DriveState.Reef)) ;
+      reefBlue.addRelativeAttractors(0.4, 0.2, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Right, DriveState.Reef)) ;
 
-      cornerSBlue.addRelativeAttractor(true, 0.4, 0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Station));
-      cornerSBlue.addRelativeAttractor(true, 0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Station));
-      cornerSBlue.addRelativeAttractor(true, 0.4, -0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Station));
+      cornerSBlue.addRelativeAttractor(true, 0.4, 0.5, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Left, DriveState.Station)) ;
+      cornerSBlue.addRelativeAttractor(true, 0.4, 0, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Centre, DriveState.Station)) ;
+      cornerSBlue.addRelativeAttractor(true, 0.4, -0.5, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Right, DriveState.Station)) ;
       
-      cornerNBlue.addRelativeAttractor(false, 0.4, 0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Station));
-      cornerNBlue.addRelativeAttractor(false, 0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Station));
-      cornerNBlue.addRelativeAttractor(false, 0.4, -0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Station));
+      cornerNBlue.addRelativeAttractor(false, 0.4, 0.5, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Left, DriveState.Station)) ;
+      cornerNBlue.addRelativeAttractor(false, 0.4, 0, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Centre, DriveState.Station)) ;
+      cornerNBlue.addRelativeAttractor(false, 0.4, -0.5, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Right, DriveState.Station)) ;
       
-      cornerSRed.addRelativeAttractor(false, 0.4, 0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Station));
-      cornerSRed.addRelativeAttractor(false, 0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Station));
-      cornerSRed.addRelativeAttractor(false, 0.4, -0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Station));
+      cornerSRed.addRelativeAttractor(false, 0.4, 0.5, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Left, DriveState.Station)) ;
+      cornerSRed.addRelativeAttractor(false, 0.4, 0, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Centre, DriveState.Station)) ;
+      cornerSRed.addRelativeAttractor(false, 0.4, -0.5, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Right, DriveState.Station)) ;
       
-      cornerNRed.addRelativeAttractor(true, 0.4, 0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Left) && Superstructure.checkDriveState(DriveState.Station));
-      cornerNRed.addRelativeAttractor(true, 0.4, 0, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Centre) && Superstructure.checkDriveState(DriveState.Station));
-      cornerNRed.addRelativeAttractor(true, 0.4, -0.5, 2.5, 1.2, () -> Superstructure.checkTargetPosition(TargetPosition.Right) && Superstructure.checkDriveState(DriveState.Station));
+      cornerNRed.addRelativeAttractor(true, 0.4, 0.5, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Left, DriveState.Station)) ;
+      cornerNRed.addRelativeAttractor(true, 0.4, 0, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Centre, DriveState.Station)) ;
+      cornerNRed.addRelativeAttractor(true, 0.4, -0.5, 2.5, 1.2, () -> checkTargetAndState.test(TargetPosition.Right, DriveState.Station)) ;
     }
 
     public static final ObjectList fieldBlueGeoFence = new ObjectList
@@ -218,5 +205,15 @@ public class FieldConstants
 
     public static final ObjectList fieldGeoFence = new ObjectList(field, fieldBlueGeoFence, fieldRedGeoFence);
 
+    /** Minimum speed limit within a restrictor */
+    public static final double minLocalSpeedLimit = 0.05;
+  }
+
+  public static final class AutoDrive 
+  {
+    /** Attractor minimum angle tolerance, degrees */
+    public static final double minAngleTolerance = 20;
+    /** Attractor maximum angle tolerance, degrees */
+    public static final double maxAngleTolerance = 60;
   }
 }

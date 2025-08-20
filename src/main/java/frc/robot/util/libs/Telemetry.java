@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.util.libs;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;

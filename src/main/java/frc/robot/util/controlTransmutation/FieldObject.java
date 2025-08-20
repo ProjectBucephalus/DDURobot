@@ -31,17 +31,6 @@ public abstract class FieldObject extends InputTransmuter
   protected BooleanSupplier activeSupplier = () -> true;
 
   /**
-   * Global minimum value for object radius, metres </p>
-   * The system is not confirmed to handle negative radii
-   */
-  protected static final double minRadius = 0;
-  /**
-   * Global minimum value for object buffer, metres </p>
-   * A small buffer is required to ensure safe transitions
-   */
-  protected static final double minBuffer = 0.1;
-
-  /**
    * Sets the global robot position supplier for all field objects
    * @param robotPosSupplier Translation2d Supplier for the robot position (not pose)
    */

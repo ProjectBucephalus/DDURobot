@@ -27,8 +27,9 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.constants.Constants;
+import static frc.robot.constants.Constants.Swerve.*;
 import frc.robot.constants.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.util.FieldUtils;
 import frc.robot.util.controlTransmutation.PIDDriveTransmuter;
 
 /**
@@ -37,8 +38,8 @@ import frc.robot.util.controlTransmutation.PIDDriveTransmuter;
  */
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem, Sendable 
 {
-  private final PIDController thetaController = new PIDController(Constants.Swerve.rotationKP, Constants.Swerve.rotationKI, Constants.Swerve.rotationKD);
-  private final PIDDriveTransmuter pidTransmuter = new PIDDriveTransmuter(Constants.Swerve.driveKP, Constants.Swerve.driveKI, Constants.Swerve.driveKD);
+  private final PIDController thetaController = new PIDController(rotationKP, rotationKI, rotationKD);
+  private final PIDDriveTransmuter pidTransmuter = new PIDDriveTransmuter(driveKP, driveKI, driveKD);
 
   private static final double kSimLoopPeriod = 0.005; // 5 ms
   private Notifier m_simNotifier = null;
@@ -265,12 +266,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
   public Command sysIdDynamic(SysIdRoutine.Direction direction) 
     {return m_sysIdRoutineToApply.dynamic(direction);}
 
-  public Command poseLockDriveCommand(Supplier<Pose2d> targetSupplier, Supplier<SwerveDriveState> swerveStateSup) 
+  public Command poseDriveCommand(Supplier<Pose2d> targetSupplier, Supplier<SwerveDriveState> swerveStateSup) 
   {
-    final double maxSpeed = Constants.Swerve.maxSpeed;
-
-    final var driveRequest = new SwerveRequest
-      .ApplyRobotSpeeds();    
+    final var driveRequest = new SwerveRequest.ApplyRobotSpeeds();    
 
     pidTransmuter.withTargetPoseSup(targetSupplier);
 
@@ -281,7 +279,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       final Pose2d target = targetSupplier.get();
 
       final double speedTheta = 
-        Math.min(thetaController.calculate(pose.getRotation().getRadians(), target.getRotation().getRadians()), Constants.Swerve.maxAngularVelocity);
+        Math.min(thetaController.calculate(pose.getRotation().getRadians(), target.getRotation().getRadians()), maxAngularVelocity);
       final Translation2d throttleXY = pidTransmuter.process(pose.getTranslation());
 
       setControl
@@ -300,8 +298,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             )
         )
       );
-    })
-    .withTimeout(5);
+    }).until(() -> FieldUtils.atPose(swerveStateSup.get().Pose, targetSupplier.get()));
   }
 
   @Override

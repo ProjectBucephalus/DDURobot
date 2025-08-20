@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.IDConstants;
-import frc.robot.util.SD;
 
 public class CoralRoller extends SubsystemBase
 {
@@ -19,29 +18,12 @@ public class CoralRoller extends SubsystemBase
     io_Sensor = new DigitalInput(IDConstants.coralSensorDIO);
   }
 
-  public void setSpeed(double speed)
-  {
-    m_Coral.set(speed);
-  }
-
   public boolean getSensor()
-  {
-    return io_Sensor.get();
-  }
+    {return io_Sensor.get();}
    
-  public Command runCommand(double speed)
-  {
-    return startEnd(() -> setSpeed(speed), () -> setSpeed(0));
-  }
-
-  public Command smartRunCommand(double speed)
-  {
-    return runCommand(speed).until(this::getSensor);
-  }
+  public Command setSpeedCommand(double speed)
+    {return this.run(() -> m_Coral.set(speed));}
 
   @Override
-  public void periodic() 
-  {
-    SD.CORAL_ROLLER.put(m_Coral.get());
-  }
+  public void periodic() {}
 }

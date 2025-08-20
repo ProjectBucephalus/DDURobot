@@ -10,7 +10,6 @@ public final class IDConstants
 
   /* Drive */
   /* _____ */
-  
   public static final int foreStbdDriveMotorID = 1;
   public static final int foreStbdAngleMotorID = 2;
   public static final int foreStbdCANcoderID   = 3;
@@ -31,11 +30,9 @@ public final class IDConstants
 
   /* Mechanism */
   /* _________ */
-
   public static final int coralRollerID = 13;
   public static final int coralSensorDIO = 0;
 
   public static final int AlgaeRollerID = 14;
   public static final int AlgaeSensorDIO = 1;
- 
 }

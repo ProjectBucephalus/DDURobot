@@ -1,8 +1,7 @@
 package frc.robot.subsystems;
 
-import java.util.ArrayList;
-import java.util.function.Consumer;
-import java.util.function.DoubleSupplier;
+import java.util.HashSet;
+import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -13,57 +12,45 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class RumbleRequester extends SubsystemBase
 {
-  private ArrayList<String> queue = new ArrayList<String>();
+  private HashSet<String> queue = new HashSet<String>();
   private final CommandXboxController controller;
   private final RumbleType side;
-  private final DoubleSupplier strengthSup;
-  private final Consumer<String> displayCns;
+  private final Supplier<Double> strengthSup;
 
-  public RumbleRequester(CommandXboxController controller, RumbleType side, Consumer<String> displayCns, DoubleSupplier strengthSup)
+  public RumbleRequester(CommandXboxController controller, RumbleType side, Supplier<Double> strengthSup)
   {
     this.controller = controller;
     this.side = side;
-    this.displayCns = displayCns;
     this.strengthSup = strengthSup;
   }
 
-  private void addRequest(String requestID)
-  {
-    if(!queue.contains(requestID))
-      {queue.add(requestID);}
-  }
+  private void add(String rumbleID)
+    {queue.add(rumbleID);}
 
-  private void removeRequest(String requestID)
-    {queue.remove(requestID);}
+  private void remove(String rumbleID)
+    {queue.remove(rumbleID);}
 
-  public Command requestCommand(boolean addRequest, String requestID)
-    {return addRequest ? Commands.runOnce(() -> addRequest(requestID)) : Commands.runOnce(() -> removeRequest(requestID));}
+  public void clear()
+    {queue.clear();}
+
+  /** Returns a command that runs a rumble while it's running */
+  public Command rumbleWhileCommand(String rumbleID)
+    {return Commands.startEnd(() -> add(rumbleID), () -> remove(rumbleID));}
 
   /** Adds a rumble with the provided ID that runs while the given trigger is true. Returns the subsystem for easier chaining. */
-  public RumbleRequester addRumbleTrigger(String requestID, Trigger trigger)
+  public RumbleRequester addRumbleTrigger(String rumbleID, Trigger trigger)
   {
-    trigger.whileTrue(Commands.startEnd(() -> addRequest(requestID), () -> removeRequest(requestID)));
+    trigger.whileTrue(Commands.startEnd(() -> add(rumbleID), () -> remove(rumbleID)));
     return this;
   }
 
-  public void clearRequests()
-    {queue.clear();}
-
-  public Command timedRequestCommand(String requestID, double durationSeconds)
-  {
-    return 
-    Commands.sequence
-    (
-      requestCommand(true, requestID),
-      Commands.waitSeconds(durationSeconds),
-      requestCommand(false, requestID)
-    );
-  }
+  /** Returns a command that runs a rumble for the provided duration */
+  public Command timedRequestCommand(String rumbleID, double durationSeconds)
+    {return rumbleWhileCommand(rumbleID).withDeadline(Commands.waitSeconds(durationSeconds));}
 
   @Override
   public void periodic() 
   {
-    controller.setRumble(side, queue.isEmpty() ? 0 : strengthSup.getAsDouble());
-    displayCns.accept(queue.toString());
+    controller.setRumble(side, queue.isEmpty() ? 0 : strengthSup.get());
   }
 }
