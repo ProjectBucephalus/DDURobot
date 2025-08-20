@@ -22,7 +22,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import frc.robot.Superstructure;
+import frc.robot.Robot;
 import frc.robot.util.SD;
 import frc.robot.util.libs.LimelightHelpers;
 import static frc.robot.constants.Constants.Vision.*;
@@ -135,14 +135,12 @@ public class Vision extends SubsystemBase
               if (highest - lowest < 1)
               {
                 rotationKnown = true;
-                Superstructure.setRotationKnown(true);
-                Superstructure.setYaw((highest + lowest) / 2);
+                Robot.setYaw((highest + lowest) / 2);
               }
             }
           }
         );
       }
-      
 
       if (!lastCycleRotationKnown) 
       {
