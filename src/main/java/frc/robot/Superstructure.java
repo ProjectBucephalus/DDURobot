@@ -186,9 +186,9 @@ public class Superstructure
       );
     
 
-    driver.leftTrigger().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_F.get()));
-    driver.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
-    //operator.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
+    operator.leftTrigger().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_F.get()));
+    operator.leftBumper().whileTrue(s_Coral.runCommand(SD.IO_CORALSPEED_R.get()));
+
     // Heading reset
     driver.start()
       .onTrue
@@ -229,10 +229,10 @@ public class Superstructure
         .withName("DisableNavigation")
       );
     
-    driver.povLeft().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
-    driver.povRight().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
-    driver.povUp().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
-    driver.povDown().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
+    operator.povLeft().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
+    operator.povRight().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
+    operator.povUp().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
+    operator.povDown().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
 
     driver.x().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Reef));
     driver.a().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Station));
