@@ -229,10 +229,10 @@ public class Superstructure
         .withName("DisableNavigation")
       );
     
-    operator.povLeft().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
-    operator.povRight().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
-    operator.povUp().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
-    operator.povDown().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
+    operator.x().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Left));
+    operator.b().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Right));
+    operator.y().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.Centre));
+    operator.a().onTrue(Commands.runOnce(() -> currentTarget = TargetPosition.None));
 
     driver.x().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Reef));
     driver.a().onTrue(Commands.runOnce(() -> currentDriveState = DriveState.Station));
