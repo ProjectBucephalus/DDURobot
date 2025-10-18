@@ -73,6 +73,10 @@ public class Limelight extends SubsystemBase
     NetworkTableInstance.getDefault().getTable(limelightName).getEntry("<throttle_set>").setNumber(throttle);
   }
 
+  /**
+   * April Tag Exculsion
+   * @param activePOI - Active set of Valid April Tag IDs
+   */
   public static void setActivePOI(TagPOI activePOI) 
   {
     switch (activePOI) 
@@ -91,6 +95,10 @@ public class Limelight extends SubsystemBase
     }
   }
 
+  /**
+   * Modification of pipeline settings via Dashboard or Controller
+   * @return Current Pipeline Int +/- 1
+   */
   public int updateLimelightPipeline()
   {
     if (SD.IO_LL_EXPOSURE_UP.button())
